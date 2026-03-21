@@ -4,7 +4,7 @@ import { colors } from "@/styles/colors";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { ServiceMenu } from "@/components/navigation/service-menu";
+import { AdminMenu } from "@/components/navigation/admin-menu"; // 🔥 ALTERADO AQUI
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
@@ -26,8 +26,7 @@ export default function Index() {
       </View>
 
       {/* Menu fixo no final */}
-    
-       <ServiceMenu />
+      <AdminMenu />
 
     </SafeAreaView>
   );

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "@/styles/colors";
+
+import { DashboardIcon } from "@/components/icons/dashboard-icon";
+import { ServicesIcon } from "@/components/icons/services-icon";
+import { AppointmentsIcon } from "@/components/icons/appointments-icon";
+import { TeamsIcon } from "@/components/icons/teams-icon";
 
 export function AdminMenu() {
   const [active, setActive] = useState("Dashboard");
@@ -10,25 +13,28 @@ export function AdminMenu() {
     <View style={styles.wrapper}>
       <View style={styles.container}>
         <MenuItem
-          icon="work"
+          Icon={DashboardIcon}
           label="Dashboard"
           active={active === "Dashboard"}
           onPress={() => setActive("Dashboard")}
         />
+
         <MenuItem
-          icon="content-cut"
+          Icon={ServicesIcon}
           label="Serviços"
           active={active === "Serviços"}
           onPress={() => setActive("Serviços")}
         />
+
         <MenuItem
-          icon="event"
+          Icon={AppointmentsIcon}
           label="Agenda"
           active={active === "Agenda"}
           onPress={() => setActive("Agenda")}
         />
+
         <MenuItem
-          icon="people"
+          Icon={TeamsIcon}
           label="Equipes"
           active={active === "Equipes"}
           onPress={() => setActive("Equipes")}
@@ -38,17 +44,29 @@ export function AdminMenu() {
   );
 }
 
-function MenuItem({ icon, label, active, onPress }: any) {
+function MenuItem({
+  Icon,
+  label,
+  active,
+  onPress,
+}: {
+  Icon: React.ComponentType<{ color: string }>;
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   return (
     <TouchableOpacity style={styles.item} onPress={onPress}>
-      <View style={[styles.iconContainer, active && styles.activeIcon]}>
-        <MaterialIcons
-          name={icon}
-          size={24}
-          color={active ? "#fff" : colors.primary}
-        />
+      <View style={styles.iconContainer}>
+        <Icon color={active ? "#FFA600" : "#000000"} />
       </View>
-      <Text style={[styles.label, active && styles.activeLabel]}>
+
+      <Text
+        style={[
+          styles.label,
+          { color: active ? "#FFA600" : "#000000" },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -57,8 +75,6 @@ function MenuItem({ icon, label, active, onPress }: any) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: 0,
-    paddingBottom: 0,
     backgroundColor: "transparent",
   },
 
@@ -70,12 +86,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 10,
 
-  
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
-
     elevation: 10,
   },
 
@@ -86,19 +100,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     padding: 9,
     borderRadius: 20,
-  },
-
-  activeIcon: {
-    backgroundColor: colors.primary,
+    backgroundColor: "transparent",
   },
 
   label: {
     fontSize: 12,
     marginTop: 4,
-    color: colors.primary,
-  },
-
-  activeLabel: {
-    fontWeight: "600",
   },
 });
