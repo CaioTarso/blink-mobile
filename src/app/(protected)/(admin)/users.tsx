@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -23,22 +24,53 @@ export default function UsersScreen() {
   const router = useRouter();
   const [users, setUsers] = useState(userName);
 
+  // Toast
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastColor, setToastColor] = useState("#333");
+  const [toastOpacity] = useState(new Animated.Value(0));
+
+  const showToast = (message: string, color: string) => {
+    setToastMessage(message);
+    setToastColor(color);
+
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }, 2000);
+    });
+  };
+
   const handleToggleActive = (id: string, value: boolean) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, active: value } : u))
     );
 
-    if (value) {
-      alert("Usuário ativado");
-    } else {
-      alert("Usuário desativado");
-    }
+    showToast(
+      value ? "Usuário ativado" : "Usuário desativado",
+      value ? "#28a745" : "#dc3545"
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Toast */}
+      {toastMessage ? (
+        <Animated.View
+          style={[styles.toast, { opacity: toastOpacity, backgroundColor: toastColor }]}
+        >
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      ) : null}
+
       <View style={styles.content}>
-        {/* Voltar */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.push("/(protected)/(admin)")}
@@ -62,9 +94,7 @@ export default function UsersScreen() {
               active={item.active}
               onEdit={() => console.log("Editar", item.name)}
               onDelete={() => console.log("Excluir", item.name)}
-              onToggleActive={(value) =>
-                handleToggleActive(item.id, value)
-              }
+              onToggleActive={(value) => handleToggleActive(item.id, value)}
             />
           )}
         />
@@ -82,4 +112,18 @@ const styles = StyleSheet.create({
   backText: { fontSize: 14, color: "#FFA600", fontWeight: "600" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
   subtitle: { fontSize: 14, marginBottom: 15, color: "gray" },
+
+  toast: {
+    position: "absolute",
+    top: 10,
+    alignSelf: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    zIndex: 9999,
+  },
+  toastText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });
