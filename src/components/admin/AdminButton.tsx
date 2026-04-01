@@ -14,7 +14,7 @@ export function AdminButton({ children, onPress, disabled }: AdminButtonProps) {
       disabled={disabled}
       style={[
         styles.button,
-        { backgroundColor: disabled ? "#ccc" : "#7c3aed" },
+        disabled ? styles.disabled : styles.active,
       ]}
     >
       <Text style={styles.text}>{children}</Text>
@@ -28,6 +28,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+
+  active: {
+    backgroundColor: "#FFA600",
+  },
+
+  disabled: {
+    backgroundColor: "#ccc",
+  },
+
   text: {
     color: "white",
     fontWeight: "600",
