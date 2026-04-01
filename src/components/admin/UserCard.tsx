@@ -23,39 +23,46 @@ export function UserCard({
   onToggleActive,
 }: UserCardProps) {
   return (
-    <Card>
-      <View style={styles.header}>
-        <View style={styles.left}>
-          <View style={styles.avatar}>
-            <UserIcon color={active ? "#000" : "#999"} />
+    <View style={styles.wrapper}>
+      <Card>
+        <View style={styles.header}>
+          <View style={styles.left}>
+            <View style={styles.avatar}>
+              <UserIcon color={active ? "#000" : "#999"} />
+            </View>
+
+            <View>
+              <Text style={[styles.name, !active && styles.inactive]}>
+                {name}
+              </Text>
+              <Text style={[styles.role, !active && styles.inactive]}>
+                {role}
+              </Text>
+            </View>
           </View>
 
-          <View>
-            <Text style={[styles.name, { opacity: active ? 1 : 0.4 }]}>
-              {name}
-            </Text>
-            <Text style={[styles.role, { opacity: active ? 1 : 0.4 }]}>
-              {role}
-            </Text>
-          </View>
+          <Switch value={active} onValueChange={onToggleActive} />
         </View>
 
-        <Switch value={active} onValueChange={onToggleActive} />
-      </View>
-
-      <View style={styles.actions}>
-        <AdminButton onPress={onEdit} disabled={!active}>
-          Editar
-        </AdminButton>
-        <AdminButton onPress={onDelete} disabled={!active}>
-          Excluir
-        </AdminButton>
-      </View>
-    </Card>
+        <View style={styles.actions}>
+          <AdminButton onPress={onEdit} disabled={!active}>
+            Editar
+          </AdminButton>
+          <AdminButton onPress={onDelete} disabled={!active}>
+            Excluir
+          </AdminButton>
+        </View>
+      </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    width: "100%",
+    alignItems: "center",
+  },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -86,6 +93,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "gray",
     marginTop: 2,
+  },
+
+  inactive: {
+    opacity: 0.4,
   },
 
   actions: {

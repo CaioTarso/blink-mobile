@@ -24,14 +24,11 @@ export default function UsersScreen() {
   const router = useRouter();
   const [users, setUsers] = useState(userName);
 
-  // Toast
   const [toastMessage, setToastMessage] = useState("");
-  const [toastColor, setToastColor] = useState("#333");
   const [toastOpacity] = useState(new Animated.Value(0));
 
-  const showToast = (message: string, color: string) => {
+  const showToast = (message: string) => {
     setToastMessage(message);
-    setToastColor(color);
 
     Animated.timing(toastOpacity, {
       toValue: 1,
@@ -53,10 +50,7 @@ export default function UsersScreen() {
       prev.map((u) => (u.id === id ? { ...u, active: value } : u))
     );
 
-    showToast(
-      value ? "Usuário ativado" : "Usuário desativado",
-      value ? "#28a745" : "#dc3545"
-    );
+    showToast(value ? "Usuário ativado" : "Usuário desativado");
   };
 
   return (
@@ -64,7 +58,14 @@ export default function UsersScreen() {
       {/* Toast */}
       {toastMessage ? (
         <Animated.View
-          style={[styles.toast, { opacity: toastOpacity, backgroundColor: toastColor }]}
+          style={[
+            styles.toast,
+            toastMessage === "Usuário ativado"
+              ? styles.toastActive
+              : styles.toastInactive,
+            styles.toastAnimated,
+            { opacity: toastOpacity },
+          ]}
         >
           <Text style={styles.toastText}>{toastMessage}</Text>
         </Animated.View>
@@ -86,7 +87,7 @@ export default function UsersScreen() {
         <FlatList
           data={users}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <UserCard
               name={item.name}
@@ -106,12 +107,41 @@ export default function UsersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
-  content: { flex: 1, padding: 20 },
-  backButton: { marginBottom: 10 },
-  backText: { fontSize: 14, color: "#FFA600", fontWeight: "600" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
-  subtitle: { fontSize: 14, marginBottom: 15, color: "gray" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+
+  backButton: {
+    marginBottom: 10,
+  },
+
+  backText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFA600",
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    marginBottom: 15,
+    color: "gray",
+  },
+
+  listContent: {
+    paddingBottom: 80,
+  },
 
   toast: {
     position: "absolute",
@@ -122,6 +152,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     zIndex: 9999,
   },
+
+  toastAnimated: {
+    
+  },
+
+  toastActive: {
+    backgroundColor: "#28a745",
+  },
+
+  toastInactive: {
+    backgroundColor: "#dc3545",
+  },
+
   toastText: {
     color: "#fff",
     fontWeight: "600",
