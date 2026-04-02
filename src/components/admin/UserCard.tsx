@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 import { Card } from "@/components/Card";
 import { AdminButton } from "./AdminButton";
 import { UserIcon } from "./icons/user-icon";
+import { CustomSwitch } from "./CustomSwitch";
 
 type UserCardProps = {
   name: string;
@@ -55,11 +56,9 @@ export function UserCard({
             </View>
           </View>
 
-          <Switch
-            value={active} 
-            onValueChange={onToggleActive} 
-            trackColor={{ false : "#CCC", true: "#427258"}}
-            thumbColor={active ? "#54A779" : "#FFF"}
+          <CustomSwitch
+            value={active}
+            onChange={onToggleActive}
           />
         </View>
 
