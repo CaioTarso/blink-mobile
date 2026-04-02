@@ -48,8 +48,8 @@ export function UserCard({
               </Text>
               <View style={styles.tagsContainer}>
                 {tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
+                  <View key={index} style={[styles.tag, !active && styles.tagInactive,]}>
+                    <Text style={[styles.tagText, !active && styles.tagTextInactive,]}>{tag}</Text>
                   </View>
                 ))}
               </View>
@@ -133,8 +133,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
+  tagInactive: {
+    backgroundColor: "#ddd",
+  },
+
+  tagTextInactive: {
+    color: "#999",
+  },
+
   tag: {
-    backgroundColor: "#eee",
+    backgroundColor: "#EB996E",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -142,7 +150,7 @@ const styles = StyleSheet.create({
 
   tagText: {
     fontSize: 11,
-    color: "#555",
+    color: "#000",
   },
 
   inactive: {
