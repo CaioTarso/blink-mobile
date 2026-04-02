@@ -41,16 +41,26 @@ export function UserCard({
             </View>
           </View>
 
-          <Switch value={active} onValueChange={onToggleActive} />
+          <Switch
+            value={active} 
+            onValueChange={onToggleActive} 
+            trackColor={{ false : "#CCC", true: "#427258"}}
+            thumbColor={active ? "#54A779" : "#FFF"}
+          />
         </View>
 
         <View style={styles.actions}>
-          <AdminButton onPress={onEdit} disabled={!active}>
-            Editar
-          </AdminButton>
-          <AdminButton onPress={onDelete} disabled={!active}>
-            Excluir
-          </AdminButton>
+          <View style={styles.editButton}>
+            <AdminButton onPress={onEdit} disabled={!active} variant="edit">
+              Editar
+            </AdminButton>
+          </View>
+
+          <View style={styles.deleteButton}>
+            <AdminButton onPress={onDelete} disabled={!active} variant="delete">
+              Excluir
+            </AdminButton>
+          </View>
         </View>
       </Card>
     </View>
@@ -66,7 +76,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    height: 100,
+    marginTop: 2,
   },
 
   left: {
@@ -79,7 +91,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#eee",
+    backgroundColor: "#EEE",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -101,8 +113,16 @@ const styles = StyleSheet.create({
 
   actions: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     marginTop: 10,
     gap: 8,
+  },
+
+  editButton: {
+    width: "60%",
+  },
+
+  deleteButton: {
+    width: "30%",
   },
 });

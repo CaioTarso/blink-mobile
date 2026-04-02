@@ -50,17 +50,16 @@ export default function UsersScreen() {
       prev.map((u) => (u.id === id ? { ...u, active: value } : u))
     );
 
-    showToast(value ? "Usuário ativado" : "Usuário desativado");
+    showToast(value ? "Usuário ativado com sucesso!" : "Usuário desativado com sucesso!");
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Toast */}
       {toastMessage ? (
         <Animated.View
           style={[
             styles.toast,
-            toastMessage === "Usuário ativado"
+            toastMessage === "Usuário ativado com sucesso!"
               ? styles.toastActive
               : styles.toastInactive,
             styles.toastAnimated,
@@ -76,7 +75,7 @@ export default function UsersScreen() {
           style={styles.backButton}
           onPress={() => router.push("/(protected)/(admin)")}
         >
-          <Text style={styles.backText}>← Voltar</Text>
+          <Text style={styles.backText}>Voltar</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Equipe</Text>
@@ -109,7 +108,7 @@ export default function UsersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#FBFBFB",
   },
 
   content: {
@@ -124,7 +123,6 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#FFA600",
   },
 
   title: {
@@ -154,19 +152,18 @@ const styles = StyleSheet.create({
   },
 
   toastAnimated: {
-    
   },
 
   toastActive: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#54A779",
   },
 
   toastInactive: {
-    backgroundColor: "#dc3545",
+    backgroundColor: "#FB3737",
   },
 
   toastText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: "#FFF",
+    fontWeight: "400",
   },
 });

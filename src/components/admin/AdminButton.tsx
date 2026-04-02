@@ -5,16 +5,24 @@ type AdminButtonProps = {
   children: React.ReactNode;
   onPress?: () => void;
   disabled?: boolean;
+  variant?: "edit" | "delete";
 };
 
-export function AdminButton({ children, onPress, disabled }: AdminButtonProps) {
+export function AdminButton({
+  children,
+  onPress,
+  disabled,
+  variant = "edit",
+}: AdminButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       style={[
         styles.button,
-        disabled ? styles.disabled : styles.active,
+        variant === "edit" && styles.editButton,
+        variant === "delete" && styles.deleteButton,
+        disabled && styles.disabled,
       ]}
     >
       <Text style={styles.text}>{children}</Text>
@@ -24,21 +32,26 @@ export function AdminButton({ children, onPress, disabled }: AdminButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    padding: 12,
+    paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",
   },
 
-  active: {
+  editButton: {
     backgroundColor: "#FFA600",
   },
 
+  deleteButton: {
+    backgroundColor: "#FB3737",
+
+  },
+
   disabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#CCC",
   },
 
   text: {
-    color: "white",
+    color: "#FFF",
     fontWeight: "600",
   },
 });
