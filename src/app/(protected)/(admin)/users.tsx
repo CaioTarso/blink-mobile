@@ -15,9 +15,30 @@ import { UserCard } from "@/components/admin/UserCard";
 
 // MOCKADO
 const userName = [
-  { id: "1", name: "João Silva", role: "Admin", active: true },
-  { id: "2", name: "Maria Souza", role: "Staff", active: true },
-  { id: "3", name: "Carlos Lima", role: "Client", active: false },
+  {
+    id: "1",
+    name: "João Silva",
+    role: "Admin",
+    email: "joao@email.com",
+    tags: ["Banho", "Tosa"],
+    active: true,
+  },
+  {
+    id: "2",
+    name: "Maria Souza",
+    role: "Staff",
+    email: "maria@email.com",
+    tags: ["Banho e Tosa"],
+    active: true,
+  },
+  {
+    id: "3",
+    name: "Carlos Lima",
+    role: "Client",
+    email: "carlos@email.com",
+    tags: ["Consulta"],
+    active: false,
+  },
 ];
 
 export default function UsersScreen() {
@@ -71,14 +92,16 @@ export default function UsersScreen() {
       ) : null}
 
       <View style={styles.content}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.push("/(protected)/(admin)")}
-        >
-          <Text style={styles.backText}>Voltar</Text>
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push("/(protected)/(admin)")}
+          >
+            <Text style={styles.backIcon}>‹</Text>
+          </TouchableOpacity>
 
-        <Text style={styles.title}>Equipe</Text>
+          <Text style={styles.title}>Equipe</Text>
+        </View>
         <Text style={styles.subtitle}>
           Gerencie os profissionais do petshop
         </Text>
@@ -91,6 +114,8 @@ export default function UsersScreen() {
             <UserCard
               name={item.name}
               role={item.role}
+              email={item.email}
+              tags={item.tags}
               active={item.active}
               onEdit={() => console.log("Editar", item.name)}
               onDelete={() => console.log("Excluir", item.name)}
@@ -114,6 +139,18 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+  },
+
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  backIcon: {
+    fontSize: 28,
+    fontWeight: "600",
   },
 
   backButton: {

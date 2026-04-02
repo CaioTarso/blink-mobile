@@ -8,6 +8,8 @@ import { UserIcon } from "./icons/user-icon";
 type UserCardProps = {
   name: string;
   role: string;
+  email: string;
+  tags: string[];
   active: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -17,6 +19,8 @@ type UserCardProps = {
 export function UserCard({
   name,
   role,
+  email,
+  tags,
   active,
   onEdit,
   onDelete,
@@ -38,6 +42,16 @@ export function UserCard({
               <Text style={[styles.role, !active && styles.inactive]}>
                 {role}
               </Text>
+              <Text style={[styles.email, !active && styles.inactive]}>
+                {email}
+              </Text>
+              <View style={styles.tagsContainer}>
+                {tags.map((tag, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -105,6 +119,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "gray",
     marginTop: 2,
+  },
+
+  email: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 2,
+  },
+
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 6,
+  },
+
+  tag: {
+    backgroundColor: "#eee",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+
+  tagText: {
+    fontSize: 11,
+    color: "#555",
   },
 
   inactive: {
