@@ -14,6 +14,8 @@ import { useRouter } from "expo-router";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { UserCard } from "@/components/admin/UserCard";
 import { UserFormModal } from "@/components/admin/UserFormModal";
+import { BackIcon } from "@/components/icons/back-icon";
+import { AddIcon } from "@/components/icons/add-icon";
 import { colors } from "@/styles/colors";
 
 const initialUsers = [
@@ -207,18 +209,19 @@ export default function UsersScreen() {
             style={styles.backButton}
             onPress={() => router.push("/(protected)/(admin)")}
           >
-            <Text style={styles.backIcon}>‹</Text>
+            <BackIcon color="#000" />
           </TouchableOpacity>
 
           <Text style={styles.title}>Equipe</Text>
 
           <TouchableOpacity style={styles.addButton} onPress={handleOpenAdd}>
-            <Text style={styles.addButtonText}>+ Novo Membro</Text>
+            <AddIcon color="#fff" size={22} />
+            <Text style={styles.addButtonText}>Novo Membro</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={styles.subtitle}>
-          Gerencie os profissionais do petshop.
+          Gerencie os profissionais do petshop
         </Text>
 
         <FlatList
@@ -264,11 +267,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  backIcon: {
-    fontSize: 28,
-    fontWeight: "600",
-  },
-
   backButton: {
     marginBottom: 10,
   },
@@ -281,10 +279,13 @@ const styles = StyleSheet.create({
   },
 
   addButton: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#54A779",
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+    gap: 4,
     marginBottom: 10,
   },
 
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
 
   modalButton: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 10,
     alignItems: "center",
   },
