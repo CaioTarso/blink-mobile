@@ -1,10 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, Switch } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import { Card } from "@/components/Card";
 import { AdminButton } from "./AdminButton";
 import { UserIcon } from "./icons/user-icon";
-import { CustomSwitch } from "./CustomSwitch";
 
 type UserCardProps = {
   name: string;
@@ -14,7 +13,7 @@ type UserCardProps = {
   active: boolean;
   onEdit: () => void;
   onDelete: () => void;
-  onToggleActive: (value: boolean) => void;
+  onToggleActive: () => void;
 };
 
 export function UserCard({
@@ -48,18 +47,28 @@ export function UserCard({
               </Text>
               <View style={styles.tagsContainer}>
                 {tags.map((tag, index) => (
-                  <View key={index} style={[styles.tag, !active && styles.tagInactive,]}>
-                    <Text style={[styles.tagText, !active && styles.tagTextInactive,]}>{tag}</Text>
+                  <View key={index} style={[styles.tag, !active && styles.tagInactive]}>
+                    <Text style={[styles.tagText, !active && styles.tagTextInactive]}>
+                      {tag}
+                    </Text>
                   </View>
                 ))}
               </View>
             </View>
           </View>
 
-          <CustomSwitch
-            value={active}
-            onChange={onToggleActive}
-          />
+          {/* Botão Ativar/Desativar no lugar do CustomSwitch */}
+          <TouchableOpacity
+            onPress={onToggleActive}
+            style={[
+              styles.toggleButton,
+              active ? styles.toggleDeactivate : styles.toggleActivate,
+            ]}
+          >
+            <Text style={styles.toggleText}>
+              {active ? "Desativar" : "Ativar"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.actions}>
@@ -90,7 +99,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    height: 100,
     marginTop: 2,
   },
 
@@ -98,6 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flex: 1,
   },
 
   avatar: {
@@ -133,14 +142,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  tagInactive: {
-    backgroundColor: "#ddd",
-  },
-
-  tagTextInactive: {
-    color: "#999",
-  },
-
   tag: {
     backgroundColor: "#EB996E",
     paddingHorizontal: 8,
@@ -148,13 +149,44 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
 
+  tagInactive: {
+    backgroundColor: "#ddd",
+  },
+
   tagText: {
     fontSize: 11,
     color: "#000",
   },
 
+  tagTextInactive: {
+    color: "#999",
+  },
+
   inactive: {
     opacity: 0.4,
+  },
+
+  toggleButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 78,
+  },
+
+  toggleDeactivate: {
+    backgroundColor: "#364E98",
+  },
+
+  toggleActivate: {
+    backgroundColor: "#54A779",
+  },
+
+  toggleText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   actions: {
@@ -165,7 +197,7 @@ const styles = StyleSheet.create({
   },
 
   editButton: {
-    width: "60%",
+    flex: 1,
   },
 
   deleteButton: {

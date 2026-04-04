@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Animated,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -13,7 +14,6 @@ import { useRouter } from "expo-router";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { UserCard } from "@/components/admin/UserCard";
 
-// MOCKADO
 const userName = [
   {
     id: "1",
@@ -41,6 +41,12 @@ const userName = [
   },
 ];
 
+type ConfirmTarget = {
+  id: string;
+  name: string;
+  currentActive: boolean;
+};
+
 export default function UsersScreen() {
   const router = useRouter();
   const [users, setUsers] = useState(userName);
@@ -48,9 +54,10 @@ export default function UsersScreen() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastOpacity] = useState(new Animated.Value(0));
 
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+
   const showToast = (message: string) => {
     setToastMessage(message);
-
     Animated.timing(toastOpacity, {
       toValue: 1,
       duration: 300,
@@ -66,16 +73,33 @@ export default function UsersScreen() {
     });
   };
 
-  const handleToggleActive = (id: string, value: boolean) => {
+  const handleToggleActive = (id: string, name: string, currentActive: boolean) => {
+    setConfirmTarget({ id, name, currentActive });
+  };
+
+  const handleConfirm = () => {
+    if (!confirmTarget) return;
+
+    const { id, currentActive } = confirmTarget;
+
     setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, active: value } : u))
+      prev.map((u) => (u.id === id ? { ...u, active: !currentActive } : u))
     );
 
-    showToast(value ? "Usuário ativado com sucesso!" : "Usuário desativado com sucesso!");
+    showToast(
+      !currentActive ? "Usuário ativado com sucesso!" : "Usuário desativado com sucesso!"
+    );
+
+    setConfirmTarget(null);
+  };
+
+  const handleCancel = () => {
+    setConfirmTarget(null);
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Toast */}
       {toastMessage ? (
         <Animated.View
           style={[
@@ -83,13 +107,55 @@ export default function UsersScreen() {
             toastMessage === "Usuário ativado com sucesso!"
               ? styles.toastActive
               : styles.toastInactive,
-            styles.toastAnimated,
             { opacity: toastOpacity },
           ]}
         >
           <Text style={styles.toastText}>{toastMessage}</Text>
         </Animated.View>
       ) : null}
+
+      {/* Modal de confirmação */}
+      <Modal
+        visible={!!confirmTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Confirmar ação</Text>
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja{" "}
+              <Text style={styles.modalAction}>
+                {confirmTarget?.currentActive ? "desativar" : "ativar"}
+              </Text>{" "}
+              o usuário{" "}
+              <Text style={styles.modalName}>{confirmTarget?.name}</Text>?
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancel}
+              >
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  confirmTarget?.currentActive
+                    ? styles.deactivateConfirmButton
+                    : styles.activateConfirmButton,
+                ]}
+                onPress={handleConfirm}
+              >
+                <Text style={styles.confirmText}>Sim</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.content}>
         <View style={styles.headerTop}>
@@ -99,9 +165,13 @@ export default function UsersScreen() {
           >
             <Text style={styles.backIcon}>‹</Text>
           </TouchableOpacity>
-
           <Text style={styles.title}>Equipe</Text>
         </View>
+
+        <View>
+          <Text>Adicionar +</Text>
+        </View>
+
         <Text style={styles.subtitle}>
           Gerencie os profissionais do petshop
         </Text>
@@ -119,7 +189,9 @@ export default function UsersScreen() {
               active={item.active}
               onEdit={() => console.log("Editar", item.name)}
               onDelete={() => console.log("Excluir", item.name)}
-              onToggleActive={(value) => handleToggleActive(item.id, value)}
+              onToggleActive={() =>
+                handleToggleActive(item.id, item.name, item.active)
+              }
             />
           )}
         />
@@ -157,11 +229,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  backText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
   title: {
     fontSize: 22,
     fontWeight: "bold",
@@ -188,9 +255,6 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
 
-  toastAnimated: {
-  },
-
   toastActive: {
     backgroundColor: "#54A779",
   },
@@ -202,5 +266,80 @@ const styles = StyleSheet.create({
   toastText: {
     color: "#FFF",
     fontWeight: "400",
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+
+  modalCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    gap: 16,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  modalMessage: {
+    fontSize: 14,
+    color: "#444",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  modalAction: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  modalName: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  modalButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  cancelButton: {
+    backgroundColor: "#EEEEEE",
+  },
+
+  activateConfirmButton: {
+    backgroundColor: "#54A779",
+  },
+
+  deactivateConfirmButton: {
+     backgroundColor: "#54A779",
+  },
+
+  cancelText: {
+    color: "#555",
+    fontWeight: "600",
+  },
+
+  confirmText: {
+    color: "#FFF",
+    fontWeight: "600",
   },
 });

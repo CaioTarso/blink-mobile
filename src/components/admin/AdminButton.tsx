@@ -38,12 +38,11 @@ const styles = StyleSheet.create({
   },
 
   editButton: {
-    backgroundColor: "#FFA600",
+    backgroundColor: "#EBB850",
   },
 
   deleteButton: {
     backgroundColor: "#FB3737",
-
   },
 
   disabled: {
