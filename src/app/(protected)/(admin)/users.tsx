@@ -213,7 +213,7 @@ export default function UsersScreen() {
           <Text style={styles.title}>Equipe</Text>
 
           <TouchableOpacity style={styles.addButton} onPress={handleOpenAdd}>
-            <Text style={styles.addButtonText}>+ Adicionar</Text>
+            <Text style={styles.addButtonText}>+ Adicionar Novo Membro</Text>
           </TouchableOpacity>
         </View>
 
