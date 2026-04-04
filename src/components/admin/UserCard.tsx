@@ -44,10 +44,10 @@ export function UserCard({
               <Text style={[styles.role, !active && styles.inactive]}>
                 {role}
               </Text>
-              <Text style={[styles.email, !active && styles.inactive]}>
+              <Text style={[styles.email, !active && styles.inactive]} numberOfLines={1} ellipsizeMode="tail">
                 {email}
               </Text>
-              <Text style={[styles.phone, !active && styles.inactive]}>
+              <Text style={[styles.phone, !active && styles.inactive]} numberOfLines={1} ellipsizeMode="tail">
                 {phone}
               </Text>
               <View style={styles.tagsContainer}>
