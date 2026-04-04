@@ -9,6 +9,7 @@ type UserCardProps = {
   name: string;
   role: string;
   email: string;
+  phone: string;
   tags: string[];
   active: boolean;
   onEdit: () => void;
@@ -20,6 +21,7 @@ export function UserCard({
   name,
   role,
   email,
+  phone,
   tags,
   active,
   onEdit,
@@ -45,6 +47,9 @@ export function UserCard({
               <Text style={[styles.email, !active && styles.inactive]}>
                 {email}
               </Text>
+              <Text style={[styles.phone, !active && styles.inactive]}>
+                {phone}
+              </Text>
               <View style={styles.tagsContainer}>
                 {tags.map((tag, index) => (
                   <View key={index} style={[styles.tag, !active && styles.tagInactive]}>
@@ -57,7 +62,6 @@ export function UserCard({
             </View>
           </View>
 
-          {/* Botão Ativar/Desativar no lugar do CustomSwitch */}
           <TouchableOpacity
             onPress={onToggleActive}
             style={[
@@ -135,6 +139,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  phone: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 2,
+  },
+
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -143,7 +153,7 @@ const styles = StyleSheet.create({
   },
 
   tag: {
-    backgroundColor: "#EB996E",
+    backgroundColor: "#364E98",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -155,7 +165,7 @@ const styles = StyleSheet.create({
 
   tagText: {
     fontSize: 11,
-    color: "#000",
+    color: "#fff",
   },
 
   tagTextInactive: {
@@ -176,7 +186,7 @@ const styles = StyleSheet.create({
   },
 
   toggleDeactivate: {
-    backgroundColor: "#364E98",
+    backgroundColor: "#6B7280",
   },
 
   toggleActivate: {

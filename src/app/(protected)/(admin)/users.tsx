@@ -13,13 +13,16 @@ import { useRouter } from "expo-router";
 
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { UserCard } from "@/components/admin/UserCard";
+import { UserFormModal } from "@/components/admin/UserFormModal";
+import { colors } from "@/styles/colors";
 
-const userName = [
+const initialUsers = [
   {
     id: "1",
     name: "João Silva",
     role: "Admin",
     email: "joao@email.com",
+    phone: "(85) 99999-0001",
     tags: ["Banho", "Tosa"],
     active: true,
   },
@@ -28,6 +31,7 @@ const userName = [
     name: "Maria Souza",
     role: "Staff",
     email: "maria@email.com",
+    phone: "(85) 99999-0002",
     tags: ["Banho e Tosa"],
     active: true,
   },
@@ -36,10 +40,13 @@ const userName = [
     name: "Carlos Lima",
     role: "Client",
     email: "carlos@email.com",
-    tags: ["Consulta"],
+    phone: "(85) 99999-0003",
+    tags: ["Consulta Veterinária"],
     active: false,
   },
 ];
+
+type User = typeof initialUsers[0];
 
 type ConfirmTarget = {
   id: string;
@@ -49,15 +56,19 @@ type ConfirmTarget = {
 
 export default function UsersScreen() {
   const router = useRouter();
-  const [users, setUsers] = useState(userName);
+  const [users, setUsers] = useState(initialUsers);
 
   const [toastMessage, setToastMessage] = useState("");
+  const [toastSuccess, setToastSuccess] = useState(true);
   const [toastOpacity] = useState(new Animated.Value(0));
 
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const [formModalVisible, setFormModalVisible] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const showToast = (message: string) => {
+  const showToast = (message: string, success: boolean = true) => {
     setToastMessage(message);
+    setToastSuccess(success);
     Animated.timing(toastOpacity, {
       toValue: 1,
       duration: 300,
@@ -79,22 +90,53 @@ export default function UsersScreen() {
 
   const handleConfirm = () => {
     if (!confirmTarget) return;
-
     const { id, currentActive } = confirmTarget;
-
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, active: !currentActive } : u))
     );
-
     showToast(
-      !currentActive ? "Usuário ativado com sucesso!" : "Usuário desativado com sucesso!"
+      !currentActive ? "Usuário ativado com sucesso!" : "Usuário desativado com sucesso!",
+      true
     );
-
     setConfirmTarget(null);
   };
 
-  const handleCancel = () => {
-    setConfirmTarget(null);
+  const handleCancel = () => setConfirmTarget(null);
+
+  const handleOpenAdd = () => {
+    setEditingUser(null);
+    setFormModalVisible(true);
+  };
+
+  const handleOpenEdit = (user: User) => {
+    setEditingUser(user);
+    setFormModalVisible(true);
+  };
+
+  const handleFormSubmit = (data: any) => {
+    if (editingUser) {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? { ...u, name: data.name, email: data.email, phone: data.phone, tags: data.tags }
+            : u
+        )
+      );
+      showToast("Usuário atualizado com sucesso!", true);
+    } else {
+      const newUser: User = {
+        id: String(Date.now()),
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        tags: data.tags,
+        role: "Staff",
+        active: true,
+      };
+      setUsers((prev) => [...prev, newUser]);
+      showToast("Usuário adicionado com sucesso!", true);
+    }
+    setFormModalVisible(false);
   };
 
   return (
@@ -104,9 +146,7 @@ export default function UsersScreen() {
         <Animated.View
           style={[
             styles.toast,
-            toastMessage === "Usuário ativado com sucesso!"
-              ? styles.toastActive
-              : styles.toastInactive,
+            toastSuccess ? styles.toastActive : styles.toastInactive,
             { opacity: toastOpacity },
           ]}
         >
@@ -135,29 +175,33 @@ export default function UsersScreen() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleConfirm}
+              >
+                <Text style={styles.confirmText}>Sim</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={handleCancel}
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  confirmTarget?.currentActive
-                    ? styles.deactivateConfirmButton
-                    : styles.activateConfirmButton,
-                ]}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.confirmText}>Sim</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
+      {/* Modal de formulário */}
+      <UserFormModal
+        visible={formModalVisible}
+        onClose={() => setFormModalVisible(false)}
+        onSubmit={handleFormSubmit}
+        editingUser={editingUser}
+      />
+
       <View style={styles.content}>
+        {/* Header */}
         <View style={styles.headerTop}>
           <TouchableOpacity
             style={styles.backButton}
@@ -165,11 +209,12 @@ export default function UsersScreen() {
           >
             <Text style={styles.backIcon}>‹</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Equipe</Text>
-        </View>
 
-        <View>
-          <Text>Adicionar +</Text>
+          <Text style={styles.title}>Equipe</Text>
+
+          <TouchableOpacity style={styles.addButton} onPress={handleOpenAdd}>
+            <Text style={styles.addButtonText}>+ Adicionar</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.subtitle}>
@@ -185,13 +230,12 @@ export default function UsersScreen() {
               name={item.name}
               role={item.role}
               email={item.email}
+              phone={item.phone}
               tags={item.tags}
               active={item.active}
-              onEdit={() => console.log("Editar", item.name)}
+              onEdit={() => handleOpenEdit(item)}
               onDelete={() => console.log("Excluir", item.name)}
-              onToggleActive={() =>
-                handleToggleActive(item.id, item.name, item.active)
-              }
+              onToggleActive={() => handleToggleActive(item.id, item.name, item.active)}
             />
           )}
         />
@@ -233,6 +277,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 10,
+    flex: 1,
+  },
+
+  addButton: {
+    backgroundColor: "#54A779",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 13,
   },
 
   subtitle: {
@@ -268,7 +327,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
 
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -321,25 +379,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  cancelButton: {
-    backgroundColor: "#EEEEEE",
-  },
-
-  activateConfirmButton: {
+  confirmButton: {
     backgroundColor: "#54A779",
   },
 
-  deactivateConfirmButton: {
-     backgroundColor: "#54A779",
-  },
-
-  cancelText: {
-    color: "#555",
-    fontWeight: "600",
+  cancelButton: {
+    backgroundColor: "#EEE",
   },
 
   confirmText: {
     color: "#FFF",
+    fontWeight: "600",
+  },
+
+  cancelText: {
+    color: "#555",
     fontWeight: "600",
   },
 });
