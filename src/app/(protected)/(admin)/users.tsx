@@ -215,7 +215,7 @@ export default function UsersScreen() {
           <Text style={styles.title}>Equipe</Text>
 
           <TouchableOpacity style={styles.addButton} onPress={handleOpenAdd}>
-            <AddIcon color="#fff" size={22} />
+            <AddIcon color="#fff" size={20} />
             <Text style={styles.addButtonText}>Novo Membro</Text>
           </TouchableOpacity>
         </View>
@@ -298,6 +298,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     marginBottom: 15,
+    marginLeft: 32,
     color: "gray",
   },
 
