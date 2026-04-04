@@ -32,7 +32,7 @@ export function AdminButton({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 8,
     alignItems: "center",
   },

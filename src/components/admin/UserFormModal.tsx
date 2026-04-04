@@ -282,27 +282,31 @@ const styles = StyleSheet.create({
 
   cancelButton: {
     flex: 1,
-    paddingVertical: 12,
+    height: 36,
     borderRadius: 10,
     backgroundColor: "#EEE",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   cancelText: {
     color: "#555",
     fontWeight: "600",
+    fontSize: 14,
   },
 
   submitButton: {
     flex: 1,
-    paddingVertical: 12,
+    height: 36,
     borderRadius: 10,
-    backgroundColor: colors.secondary,
+    backgroundColor: "#54A779",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   submitText: {
     color: "#fff",
     fontWeight: "600",
+    fontSize: 14,
   },
 });
