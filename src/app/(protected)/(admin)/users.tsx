@@ -218,7 +218,7 @@ export default function UsersScreen() {
         </View>
 
         <Text style={styles.subtitle}>
-          Gerencie os profissionais do petshop
+          Gerencie os profissionais do petshop.
         </Text>
 
         <FlatList

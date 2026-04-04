@@ -37,7 +37,7 @@ export function UserCard({
               <UserIcon color={active ? "#000" : "#999"} />
             </View>
 
-            <View>
+            <View style={styles.info}>
               <Text style={[styles.name, !active && styles.inactive]}>
                 {name}
               </Text>
@@ -108,9 +108,10 @@ const styles = StyleSheet.create({
 
   left: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 10,
     flex: 1,
+    marginRight: 8,
   },
 
   avatar: {
@@ -120,6 +121,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEE",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  info: {
+    flex: 1,
+    flexShrink: 1,
   },
 
   name: {
