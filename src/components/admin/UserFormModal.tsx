@@ -64,18 +64,16 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props
 
   useEffect(() => {
     if (editingUser) {
-      const hasCustom = editingUser.tags.some((t) => !ESPECIALIDADES.includes(t));
-      const customTag = hasCustom
-        ? editingUser.tags.find((t) => !ESPECIALIDADES.includes(t)) ?? ""
-        : "";
+      const knownTags = editingUser.tags.filter((t) => ESPECIALIDADES.includes(t));
+      const customTag = editingUser.tags.find((t) => !ESPECIALIDADES.includes(t)) ?? "";
 
       setForm({
         ...emptyForm,
         name: editingUser.name,
         email: editingUser.email,
         phone: editingUser.phone ?? "",
-        tags: editingUser.tags,
         role: editingUser.role,
+        tags: customTag ? [...knownTags, "Outro"] : knownTags,
         customTag,
       });
     } else {
