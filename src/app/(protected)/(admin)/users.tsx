@@ -65,6 +65,7 @@ export default function UsersScreen() {
   const [toastOpacity] = useState(new Animated.Value(0));
 
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
@@ -104,6 +105,19 @@ export default function UsersScreen() {
   };
 
   const handleCancel = () => setConfirmTarget(null);
+
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+    showToast("Usuário excluído com sucesso!", true);
+    setDeleteTarget(null);
+  };
+
+  const handleCancelDelete = () => setDeleteTarget(null);
 
   const handleOpenAdd = () => {
     setEditingUser(null);
@@ -156,7 +170,7 @@ export default function UsersScreen() {
         </Animated.View>
       ) : null}
 
-      {/* Modal de confirmação */}
+      {/* Modal de confirmação ativar/desativar */}
       <Modal
         visible={!!confirmTarget}
         transparent
@@ -186,6 +200,42 @@ export default function UsersScreen() {
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={handleCancel}
+              >
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de confirmação excluir */}
+      <Modal
+        visible={!!deleteTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelDelete}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Confirmar exclusão</Text>
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja{" "}
+              <Text style={styles.modalAction}>excluir</Text>{" "}
+              o usuário{" "}
+              <Text style={styles.modalName}>{deleteTarget?.name}</Text>?
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleConfirmDelete}
+              >
+                <Text style={styles.confirmText}>Sim</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancelDelete}
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </TouchableOpacity>
@@ -237,7 +287,7 @@ export default function UsersScreen() {
               tags={item.tags}
               active={item.active}
               onEdit={() => handleOpenEdit(item)}
-              onDelete={() => console.log("Excluir", item.name)}
+              onDelete={() => handleDelete(item.id, item.name)}
               onToggleActive={() => handleToggleActive(item.id, item.name, item.active)}
             />
           )}
