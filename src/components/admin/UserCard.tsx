@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
 
   toggleDeactivate: {
-    backgroundColor: "#4A6FA5",
+    backgroundColor: "#7291C0",
   },
 
   toggleActivate: {
