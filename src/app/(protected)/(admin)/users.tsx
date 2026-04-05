@@ -275,7 +275,7 @@ export default function UsersScreen() {
         </Text>
 
         <FlatList
-          data={users}
+          data={[...users].sort((a, b) => a.name.localeCompare(b.name))}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
