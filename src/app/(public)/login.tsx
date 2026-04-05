@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { colors } from "@/styles/colors";
+import { useRouter } from "expo-router";
 
 export default function Login() {
+  const router = useRouter();
+
   return (
     <ImageBackground
       source={require("../../../assets/images/login/background.png")}
@@ -27,13 +30,13 @@ export default function Login() {
         </View>
 
         <View style={styles.buttons}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity  onPress={() => router.push("/togoin")} style={styles.button}>
             <Text style={styles.buttonText}>Entrar</Text>
           </TouchableOpacity>
 
           <Text style={styles.linkText}>
             Não tem uma conta?{" "}
-            <Text style={styles.link}>Cadastre-se</Text>
+            <Text onPress={() => router.push("/register")} style={styles.link}>Cadastre-se</Text>
           </Text>
         </View>
       </View>
@@ -88,6 +91,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     color: "#fff",
+    textAlign: "center",
     fontSize: 24,
     fontWeight: "600",
   },
