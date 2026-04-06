@@ -14,36 +14,37 @@ export default function Dashboard() {
       
       <ScrollView contentContainerStyle={styles.content}>
 
-        <TopBar userName="Daniel Dantas" avatarUri="https://example.com/avatar.jpg" />
+        <TopBar userName="Daniel Dantas" />
 
         <TitleBar 
           title="Dashboard"
           subtitle="Visão geral do seu petshop"
           onBackPress={() => console.log("Voltar")}
-          onAddPress={() => console.log("Adicionar")}
           style={{ marginBottom: 20 }}
-        />
-
-        <StatsCard
-          title="Agendamentos no Mês"
-          value="38"
-          onPress={() => console.log("clicou")}
         />
 
         <StatsCard
           title="Receita"
           value="R$ 1530,00"
+          backgroundColor={colors.secondary}
         />
 
         <StatsCard
           title="Total Clientes"
           value="20"
+          backgroundColor={colors.accent}
         />
 
         <StatsCard
           title="Pets Cadastrados"
           value="32"
+          backgroundColor="#8E44AD"
         />  
+        
+        <StatsCard
+          title="Agendamentos no Mês"
+          value="38"
+        />
 
         <AdminBarChart />
         <ServicesDonutChart />

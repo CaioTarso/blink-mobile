@@ -21,7 +21,6 @@ export default function ServicesDonutChart() {
       <Text style={styles.month}>Mês atual</Text>
 
       <View style={styles.chartRow}>
-        {/* Donut */}
         <View style={styles.chartContainer}>
           <VictoryPie
             data={data}
@@ -35,7 +34,6 @@ export default function ServicesDonutChart() {
           />
         </View>
 
-        {/* Legenda */}
         <View style={styles.legend}>
           {data.map((item, index) => (
             <View key={index} style={styles.legendItem}>
