@@ -15,7 +15,7 @@ const data = [
 export default function DailyAppointmentsChart() {
   const { width } = useWindowDimensions();
 
-  const chartWidth = width - 40;
+  const chartWidth = Math.min(width - 40, 320);
 
   const barWidth = Math.min(50, chartWidth / (data.length * 1.4));
 
@@ -82,7 +82,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
     borderRadius: 16,
-    width: "100%",
+    width: "90%", 
+    alignSelf: "center", 
   },
   chartWrapper: {
     width: "100%",
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "700",
     lineHeight: 32,
     color: "#000",
