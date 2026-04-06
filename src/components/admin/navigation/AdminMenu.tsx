@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter, usePathname } from "expo-router";
 
 import { DashboardIcon } from "@/components/admin/icons/dashboard-icon";
 import { ServicesIcon } from "@/components/admin/icons/services-icon";
@@ -8,15 +9,24 @@ import { TeamsIcon } from "@/components/admin/icons/teams-icon";
 
 export function AdminMenu() {
   const [active, setActive] = useState("Dashboard");
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isDashboard = pathname === "/" || pathname === "";
+  const isUsers = pathname.includes("users");
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
+        
         <MenuItem
           Icon={DashboardIcon}
           label="Dashboard"
-          active={active === "Dashboard"}
-          onPress={() => setActive("Dashboard")}
+          active={isDashboard}
+          onPress={() => {
+            setActive("Dashboard");
+            router.push("/(protected)/(admin)");
+          }}
         />
 
         <MenuItem
@@ -36,8 +46,11 @@ export function AdminMenu() {
         <MenuItem
           Icon={TeamsIcon}
           label="Equipes"
-          active={active === "Equipes"}
-          onPress={() => setActive("Equipes")}
+          active={isUsers}
+          onPress={() => {
+            setActive("Equipes");
+            router.push("/(protected)/(admin)/users");
+          }}
         />
       </View>
     </View>
