@@ -1,18 +1,18 @@
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  Modal,
+    Animated,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
-import { BackIcon } from "@/components/icons/back-icon";
 import { EditProfileModal } from "@/components/client/EditProfileModal";
+import { BackIcon } from "@/components/icons/back-icon";
 import { colors } from "@/styles/colors";
 
 const mockUser = {
@@ -87,7 +87,8 @@ export default function ProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sair</Text>
             <Text style={styles.modalMessage}>
-              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
+              Tem certeza que deseja{" "}
+              <Text style={styles.modalAction}>sair</Text> da sua conta?
             </Text>
 
             <View style={styles.modalActions}>
@@ -289,19 +290,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-    logoutButton: {
-        paddingVertical: 12,
-        borderRadius: 10,
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: colors.primary,
-    },
+  logoutButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
 
-    logoutText: {
-        color: colors.primary,
-        fontWeight: "600",
-        fontSize: 15,
-    },
+  logoutText: {
+    color: colors.primary,
+    fontWeight: "600",
+    fontSize: 15,
+  },
 
   toast: {
     position: "absolute",
