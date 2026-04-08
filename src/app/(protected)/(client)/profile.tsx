@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const [toastMessage, setToastMessage] = useState("");
   const [toastOpacity] = useState(new Animated.Value(0));
@@ -54,6 +56,11 @@ export default function ProfileScreen() {
     showToast("Alterações salvas com sucesso!");
   };
 
+  const handleLogout = () => {
+    setLogoutModalVisible(false);
+    // lógica de logout aqui futuramente
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {toastMessage ? (
@@ -68,6 +75,39 @@ export default function ProfileScreen() {
         onSubmit={handleSave}
         user={user}
       />
+
+      {/* Modal de confirmação de logout */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Sair</Text>
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleLogout}
+              >
+                <Text style={styles.confirmText}>Sim</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Header */}
@@ -112,7 +152,10 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* Botão sair */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => setLogoutModalVisible(true)}
+        >
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -246,19 +289,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  logoutButton: {
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#FB3737",
-  },
+    logoutButton: {
+        paddingVertical: 12,
+        borderRadius: 10,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: colors.primary,
+    },
 
-  logoutText: {
-    color: "#FB3737",
-    fontWeight: "600",
-    fontSize: 15,
-  },
+    logoutText: {
+        color: colors.primary,
+        fontWeight: "600",
+        fontSize: 15,
+    },
 
   toast: {
     position: "absolute",
@@ -274,5 +317,70 @@ const styles = StyleSheet.create({
   toastText: {
     color: "#FFF",
     fontWeight: "400",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+
+  modalCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    gap: 16,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  modalMessage: {
+    fontSize: 14,
+    color: "#444",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  modalAction: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  modalButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  confirmButton: {
+    backgroundColor: "#54A779",
+  },
+
+  cancelButton: {
+    backgroundColor: "#EEE",
+  },
+
+  confirmText: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
+
+  cancelText: {
+    color: "#555",
+    fontWeight: "600",
   },
 });
