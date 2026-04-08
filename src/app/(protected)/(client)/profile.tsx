@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -27,13 +28,40 @@ export default function ProfileScreen() {
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastOpacity] = useState(new Animated.Value(0));
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }, 2000);
+    });
+  };
+
   const handleSave = (data: typeof mockUser) => {
     setUser((prev) => ({ ...prev, ...data }));
     setModalVisible(false);
+    showToast("Alterações salvas com sucesso!");
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {toastMessage ? (
+        <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      ) : null}
+
       <EditProfileModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -230,5 +258,21 @@ const styles = StyleSheet.create({
     color: "#FB3737",
     fontWeight: "600",
     fontSize: 15,
+  },
+
+  toast: {
+    position: "absolute",
+    top: 10,
+    alignSelf: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#54A779",
+    zIndex: 9999,
+  },
+
+  toastText: {
+    color: "#FFF",
+    fontWeight: "400",
   },
 });
