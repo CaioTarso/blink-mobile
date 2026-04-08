@@ -35,6 +35,21 @@ type Props = {
   user: UserData;
 };
 
+const formatBirthdate = (value: string) => {
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length <= 2) return numbers;
+  if (numbers.length <= 4) return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
+  return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
+};
+
+const formatCPF = (value: string) => {
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+};
+
 export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
   const [form, setForm] = useState<FormData>({
     ...user,
@@ -121,8 +136,11 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
             <Input
               label="Data de nascimento"
               placeholder="DD/MM/AAAA"
+              keyboardType="numeric"
               value={form.birthdate}
-              onChangeText={(v) => setForm((p) => ({ ...p, birthdate: v }))}
+              onChangeText={(v) =>
+                setForm((p) => ({ ...p, birthdate: formatBirthdate(v) }))
+              }
               error={errors.birthdate}
             />
 
@@ -131,7 +149,9 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               placeholder="000.000.000-00"
               keyboardType="numeric"
               value={form.cpf}
-              onChangeText={(v) => setForm((p) => ({ ...p, cpf: v }))}
+              onChangeText={(v) =>
+                setForm((p) => ({ ...p, cpf: formatCPF(v) }))
+              }
               error={errors.cpf}
             />
 
