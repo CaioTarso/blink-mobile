@@ -26,6 +26,8 @@ type FormData = UserData & {
   confirmPassword: string;
 };
 
+type Errors = Partial<Record<keyof FormData, string>>;
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -40,11 +42,33 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
     confirmPassword: "",
   });
 
+  const [errors, setErrors] = useState<Errors>({});
+
   useEffect(() => {
     setForm({ ...user, password: "", confirmPassword: "" });
+    setErrors({});
   }, [visible]);
 
+  const validate = (): boolean => {
+    const newErrors: Errors = {};
+
+    if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
+    if (!form.email.trim()) newErrors.email = "Email é obrigatório";
+    if (!form.phone.trim()) newErrors.phone = "Telefone é obrigatório";
+    if (!form.birthdate.trim()) newErrors.birthdate = "Data de nascimento é obrigatória";
+    if (!form.cpf.trim()) newErrors.cpf = "CPF é obrigatório";
+    if (!form.address.trim()) newErrors.address = "Endereço é obrigatório";
+
+    if (form.password && form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "As senhas não coincidem";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = () => {
+    if (!validate()) return;
     const { password, confirmPassword, ...userData } = form;
     onSubmit(userData);
   };
@@ -72,6 +96,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               placeholder="Seu nome"
               value={form.name}
               onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
+              error={errors.name}
             />
 
             <Input
@@ -81,6 +106,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               autoCapitalize="none"
               value={form.email}
               onChangeText={(v) => setForm((p) => ({ ...p, email: v }))}
+              error={errors.email}
             />
 
             <Input
@@ -89,6 +115,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               keyboardType="phone-pad"
               value={form.phone}
               onChangeText={(v) => setForm((p) => ({ ...p, phone: v }))}
+              error={errors.phone}
             />
 
             <Input
@@ -96,6 +123,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               placeholder="DD/MM/AAAA"
               value={form.birthdate}
               onChangeText={(v) => setForm((p) => ({ ...p, birthdate: v }))}
+              error={errors.birthdate}
             />
 
             <Input
@@ -104,6 +132,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               keyboardType="numeric"
               value={form.cpf}
               onChangeText={(v) => setForm((p) => ({ ...p, cpf: v }))}
+              error={errors.cpf}
             />
 
             <Input
@@ -111,6 +140,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               placeholder="Rua, número, bairro, cidade"
               value={form.address}
               onChangeText={(v) => setForm((p) => ({ ...p, address: v }))}
+              error={errors.address}
             />
 
             <Input
@@ -119,6 +149,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               secureTextEntry
               value={form.password}
               onChangeText={(v) => setForm((p) => ({ ...p, password: v }))}
+              error={errors.password}
             />
 
             <Input
@@ -127,6 +158,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
               secureTextEntry
               value={form.confirmPassword}
               onChangeText={(v) => setForm((p) => ({ ...p, confirmPassword: v }))}
+              error={errors.confirmPassword}
             />
           </ScrollView>
 
