@@ -1,18 +1,19 @@
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Animated,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-import { EditProfileModal } from "@/components/client/EditProfileModal";
 import { BackIcon } from "@/components/icons/back-icon";
+import { EditIcon } from "@/components/icons/edit-icon";
+import { EditProfileModal } from "@/components/client/EditProfileModal";
 import { colors } from "@/styles/colors";
 
 const mockUser = {
@@ -76,7 +77,6 @@ export default function ProfileScreen() {
         user={user}
       />
 
-      {/* Modal de confirmação de logout */}
       <Modal
         visible={logoutModalVisible}
         transparent
@@ -87,8 +87,7 @@ export default function ProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sair</Text>
             <Text style={styles.modalMessage}>
-              Tem certeza que deseja{" "}
-              <Text style={styles.modalAction}>sair</Text> da sua conta?
+              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
             </Text>
 
             <View style={styles.modalActions}>
@@ -111,7 +110,6 @@ export default function ProfileScreen() {
       </Modal>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()}>
             <BackIcon color="#000" />
@@ -124,7 +122,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Avatar */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarInitial}>
@@ -134,7 +131,6 @@ export default function ProfileScreen() {
           <Text style={styles.userName}>{user.name}</Text>
         </View>
 
-        {/* Campos */}
         <View style={styles.section}>
           <Field label="Nome completo" value={user.name} />
           <Field label="Email" value={user.email} />
@@ -144,7 +140,6 @@ export default function ProfileScreen() {
           <Field label="Endereço" value={user.address} />
         </View>
 
-        {/* Botão editar */}
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => setModalVisible(true)}
@@ -152,7 +147,6 @@ export default function ProfileScreen() {
           <Text style={styles.editButtonText}>Editar perfil</Text>
         </TouchableOpacity>
 
-        {/* Botão sair */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={() => setLogoutModalVisible(true)}
@@ -170,29 +164,6 @@ function Field({ label, value }: { label: string; value: string }) {
       <Text style={styles.fieldLabel}>{label}</Text>
       <Text style={styles.fieldValue}>{value}</Text>
     </View>
-  );
-}
-
-function EditIcon({ color = "#000" }: { color?: string }) {
-  const Svg = require("react-native-svg").default;
-  const { Path } = require("react-native-svg");
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
   );
 }
 
