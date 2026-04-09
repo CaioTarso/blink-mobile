@@ -216,6 +216,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: colors.text,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 
   section: {
