@@ -2,24 +2,20 @@ import React from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { VictoryBar, VictoryChart, VictoryAxis } from "victory-native";
 
-const data = [
-  { dia: "Dom", valor: 11 },
-  { dia: "Seg", valor: 14 },
-  { dia: "Ter", valor: 6 },
-  { dia: "Qui", valor: 9 },
-  { dia: "Qua", valor: 7 },
-  { dia: "Sex", valor: 5 },
-  { dia: "Sáb", valor: 14 },
-];
+type Props = {
+  data: {
+    dia: string;
+    valor: number;
+  }[];
+};
 
-export default function DailyAppointmentsChart() {
+export default function DailyAppointmentsChart({ data }: Props) {
   const { width } = useWindowDimensions();
 
   const chartWidth = Math.min(width - 40, 320);
-
   const barWidth = Math.min(50, chartWidth / (data.length * 1.4));
 
-  const maxY = Math.max(...data.map(d => d.valor));
+  const maxY = Math.max(...data.map((d) => d.valor));
   const domainMax = Math.max(14, maxY);
 
   return (
@@ -37,7 +33,7 @@ export default function DailyAppointmentsChart() {
           domainPadding={{ x: 30 }}
         >
           <VictoryAxis
-            tickValues={data.map(d => d.dia)}
+            tickValues={data.map((d) => d.dia)}
             style={{
               axis: { stroke: "transparent" },
               ticks: { stroke: "transparent" },
@@ -51,7 +47,6 @@ export default function DailyAppointmentsChart() {
 
           <VictoryAxis
             dependentAxis
-            tickValues={[0, 2, 4, 6, 8, 10, 12, 14]}
             style={{
               axis: { stroke: "#3b82f6", strokeWidth: 0.6 },
               ticks: { stroke: "#3b82f6", strokeWidth: 0.6 },
@@ -82,8 +77,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
     borderRadius: 16,
-    width: "90%", 
-    alignSelf: "center", 
+    width: "90%",
+    alignSelf: "center",
   },
   chartWrapper: {
     width: "100%",

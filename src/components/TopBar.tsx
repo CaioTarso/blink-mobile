@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { colors } from "@/styles/colors";
-import { PersonCircleIcon } from "../icons/profile-icon";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { PersonCircleIcon } from "./admin/icons/profile-icon";
 
 type TopBarProps = {
   userName: string;
