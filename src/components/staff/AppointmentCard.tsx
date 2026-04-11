@@ -1,37 +1,31 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Button } from "@/components/Button";
 import { colors } from "@/styles/colors";
-import { useState } from "react";
+
+export type Status = "pending" | "done" | "cancelled" | "no_show";
 
 type Props = {
+  id: string;
   time: string;
   client: string;
   pet: string;
   service: string;
-  onDone?: () => void;
-  onCancel?: () => void;
-  onNoShow?: () => void;
+  status: Status;
+  onChangeStatus: (id: string, status: Status) => void;
 };
 
-type Status = "done" | "cancel" | "noshow" | null;
-
 export function AppointmentCard({
+  id,
   time,
   client,
   pet,
   service,
-  onDone,
-  onCancel,
-  onNoShow,
+  status,
+  onChangeStatus,
 }: Props) {
-  const [status, setStatus] = useState<Status>(null);
-
   function handleSelect(newStatus: Status) {
-    setStatus(newStatus);
-
-    if (newStatus === "done") onDone?.();
-    if (newStatus === "cancel") onCancel?.();
-    if (newStatus === "noshow") onNoShow?.();
+    if (newStatus === status) return; // evita chamada desnecessária
+    onChangeStatus(id, newStatus);
   }
 
   return (
@@ -46,7 +40,9 @@ export function AppointmentCard({
         <View style={styles.button}>
           <Button
             onPress={() => handleSelect("done")}
-            backgroundColor={status === "done" ? colors.secondary : "#e5e7eb"}
+            backgroundColor={
+              status === "done" ? colors.secondary : "#e5e7eb"
+            }
             textColor={status === "done" ? "#fff" : "#374151"}
           >
             Concluído
@@ -55,9 +51,11 @@ export function AppointmentCard({
 
         <View style={styles.button}>
           <Button
-            onPress={() => handleSelect("cancel")}
-            backgroundColor={status === "cancel" ? "#E5484D" : "#e5e7eb"}
-            textColor={status === "cancel" ? "#fff" : "#374151"}
+            onPress={() => handleSelect("cancelled")}
+            backgroundColor={
+              status === "cancelled" ? "#E5484D" : "#e5e7eb"
+            }
+            textColor={status === "cancelled" ? "#fff" : "#374151"}
           >
             Cancelado
           </Button>
@@ -65,9 +63,11 @@ export function AppointmentCard({
 
         <View style={styles.button}>
           <Button
-            onPress={() => handleSelect("noshow")}
-            backgroundColor={status === "noshow" ? colors.primary : "#e5e7eb"}
-            textColor={status === "noshow" ? "#fff" : "#374151"}
+            onPress={() => handleSelect("no_show")}
+            backgroundColor={
+              status === "no_show" ? colors.primary : "#e5e7eb"
+            }
+            textColor={status === "no_show" ? "#fff" : "#374151"}
           >
             Ausente
           </Button>
