@@ -2,17 +2,19 @@ import React from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { VictoryPie } from "victory-native";
 
-const data = [
-  { x: "Banho", y: 50 },
-  { x: "Tosa", y: 46 },
-  { x: "Consulta", y: 5 },
-  { x: "Outros", y: 4 },
-];
+type ServiceData = {
+  x: string;
+  y: number;
+};
+
+type Props = {
+  data: ServiceData[];
+};
 
 const colors = ["#FACC15", "#3CC158", "#3B82F6", "#EF4444"];
 
-export default function ServicesDonutChart() {
-  const { width } = useWindowDimensions();
+export default function ServicesDonutChart({ data }: Props) {
+  const { width } = useWindowDimensions(); 
 
   return (
     <View style={styles.card}>
@@ -40,7 +42,7 @@ export default function ServicesDonutChart() {
               <View
                 style={[
                   styles.dot,
-                  { backgroundColor: colors[index] },
+                  { backgroundColor: colors[index % colors.length] },
                 ]}
               />
               <View>

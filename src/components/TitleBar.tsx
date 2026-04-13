@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 import { colors } from "@/styles/colors";
-import { BackArrowIcon } from "../icons/back-icon";
+import { BackIcon } from "../components/icons/back-icon";
 
 type TitleBarProps = {
   title: string;
@@ -21,7 +21,7 @@ export function TitleBar({
       <View style={styles.leftWrapper}>
         {onBackPress && (
           <TouchableOpacity onPress={onBackPress} style={styles.iconWrapper}>
-            <BackArrowIcon color="#111827" size={28} />
+            <BackIcon color="#111827" />
           </TouchableOpacity>
         )}
 
@@ -69,6 +69,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: "#6b7280",
-    marginTop: -4, 
+    marginTop: 4, 
   },
 });
