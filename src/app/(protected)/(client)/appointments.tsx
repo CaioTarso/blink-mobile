@@ -79,14 +79,6 @@ export default function AppointmentsScreen() {
     );
   };
 
-  const handleNoShowAppointment = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.id === id ? { ...apt, status: "não_comparecimento" } : apt,
-      ),
-    );
-  };
-
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => {
     return (
       <View style={styles.appointmentCard}>
@@ -130,14 +122,6 @@ export default function AppointmentsScreen() {
             disabled={appointment.status !== "agendado"}
           >
             <Text style={styles.confirmButtonText}>Confirmar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.noShowButton}
-            onPress={() => handleNoShowAppointment(appointment.id)}
-            disabled={appointment.status !== "agendado"}
-          >
-            <Text style={styles.noShowButtonText}>Não vou poder ir</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -214,7 +198,8 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     flexDirection: "column",
-    gap: 12,
+    gap: 1,
+    
   },
   topSection: {
     flexDirection: "row",
@@ -267,11 +252,12 @@ const styles = StyleSheet.create({
   professional: {
     fontSize: 12,
     color: "#666",
+    marginBottom: 0,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 8,
-    justifyContent: "flex-end",
+    gap: 10,
+    justifyContent: "center",
     flexWrap: "wrap",
   },
   cancelButton: {
@@ -294,18 +280,6 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   confirmButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  noShowButton: {
-    backgroundColor: "#FFA600",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 0,
-  },
-  noShowButtonText: {
     fontSize: 12,
     fontWeight: "600",
     color: "#fff",
