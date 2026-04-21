@@ -8,6 +8,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { colors } from "@/styles/colors";
 import { ModalNewPet } from "@/components/client/navigation/ModalNewPet";
 import { ModalDeletePet } from "@/components/client/navigation/ModalDeletePet";
@@ -50,6 +51,7 @@ const mockPets: Pet[] = [
 ];
 
 export default function ClientPets() {
+  const router = useRouter();
   const [pets, setPets] = useState<Pet[]>(mockPets);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
@@ -203,15 +205,19 @@ export default function ClientPets() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FBFBFB",
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
+  backButton: {
+    marginBottom: 10,
+  },
   header: {
     flexDirection: "row",
+    gap: 6,
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 24,
@@ -228,14 +234,14 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   newButton: {
-    marginTop: 36,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
+    backgroundColor: "#54A779",
+    paddingHorizontal: 20,
+    paddingVertical: 6,
     borderRadius: 8,
+    gap: 4,
+    marginBottom: 10,
   },
   newButtonText: {
     color: "#fff",
@@ -246,15 +252,17 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: "#E0E0E0" ,
+    backgroundColor: colors.surface || colors.primary,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    marginVertical: 8,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    
   },
   cardHeader: {
     flexDirection: "row",
