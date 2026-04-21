@@ -13,7 +13,7 @@ import { useRouter } from "expo-router";
 
 import { BackIcon } from "@/components/icons/back-icon";
 import { EditIcon } from "@/components/icons/edit-icon";
-import { EditProfileModal } from "@/components/client/EditProfileModal";
+import { EditProfileModal } from "@/components/EditProfileModal";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { colors } from "@/styles/colors";
 
@@ -24,7 +24,6 @@ const mockUser = {
   birthdate: "10/01/1985",
   cpf: "987.654.321-00",
   address: "Rua das Palmeiras, 456 - Fortaleza, CE",
-  role: "Admin",
 };
 
 export default function AdminProfileScreen() {
@@ -62,7 +61,6 @@ export default function AdminProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    // lógica de logout aqui futuramente
   };
 
   return (
@@ -90,8 +88,7 @@ export default function AdminProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sair</Text>
             <Text style={styles.modalMessage}>
-              Tem certeza que deseja{" "}
-              <Text style={styles.modalAction}>sair</Text> da sua conta?
+              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
             </Text>
 
             <View style={styles.modalActions}>
@@ -126,16 +123,17 @@ export default function AdminProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Avatar */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarInitial}>
               {user.name.charAt(0).toUpperCase()}
             </Text>
           </View>
+
           <Text style={styles.userName}>{user.name}</Text>
+
           <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{user.role}</Text>
+            <Text style={styles.roleText}>Admin</Text>
           </View>
         </View>
 
@@ -185,7 +183,7 @@ const styles = StyleSheet.create({
 
   scroll: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 40,
   },
 
   headerTop: {

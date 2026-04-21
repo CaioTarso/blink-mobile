@@ -13,7 +13,7 @@ import { useRouter } from "expo-router";
 
 import { BackIcon } from "@/components/icons/back-icon";
 import { EditIcon } from "@/components/icons/edit-icon";
-import { EditProfileModal } from "@/components/client/EditProfileModal";
+import { EditProfileModal } from "@/components/EditProfileModal";
 import { colors } from "@/styles/colors";
 
 const mockUser = {
