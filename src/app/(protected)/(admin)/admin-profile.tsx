@@ -112,7 +112,7 @@ export default function AdminProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.push("/")}>
             <BackIcon color="#000" />
           </TouchableOpacity>
 
