@@ -13,20 +13,22 @@ import { useRouter } from "expo-router";
 
 import { BackIcon } from "@/components/icons/back-icon";
 import { EditIcon } from "@/components/icons/edit-icon";
-import { EditProfileModal } from "@/components/client/EditProfileModal";
+import { EditProfileModal } from "@/components/EditProfileModal";
+import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { colors } from "@/styles/colors";
 
 const mockUser = {
-  name: "Carlos Lima",
-  email: "carlos@email.com",
-  phone: "(85) 99999-0003",
-  birthdate: "15/03/1990",
-  cpf: "123.456.789-00",
-  address: "Rua das Flores, 123 - Fortaleza, CE",
+  name: "João Silva",
+  email: "joao@email.com",
+  phone: "(85) 99999-0001",
+  birthdate: "10/01/1985",
+  cpf: "987.654.321-00",
+  address: "Rua das Palmeiras, 456 - Fortaleza, CE",
 };
 
-export default function ProfileScreen() {
+export default function AdminProfileScreen() {
   const router = useRouter();
+
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -59,7 +61,6 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    // lógica de logout aqui futuramente
   };
 
   return (
@@ -111,7 +112,7 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.replace("/")}>
             <BackIcon color="#000" />
           </TouchableOpacity>
 
@@ -128,7 +129,12 @@ export default function ProfileScreen() {
               {user.name.charAt(0).toUpperCase()}
             </Text>
           </View>
+
           <Text style={styles.userName}>{user.name}</Text>
+
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>Admin</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -154,6 +160,8 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <AdminMenu />
     </SafeAreaView>
   );
 }
@@ -218,6 +226,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: "center",
     paddingHorizontal: 20,
+  },
+
+  roleBadge: {
+    marginTop: 6,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+
+  roleText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   section: {
