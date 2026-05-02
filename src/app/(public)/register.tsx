@@ -57,6 +57,7 @@ export default function Signup() {
           isPassword
         />
 
+
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>Cadastrar</Text>
         </TouchableOpacity>

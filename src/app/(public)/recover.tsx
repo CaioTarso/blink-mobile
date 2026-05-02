@@ -39,6 +39,7 @@ export default function ForgotPassword() {
           onChangeText={setEmail}
         />
 
+
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>Enviar link</Text>
         </TouchableOpacity>

@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
   paddingTop: 40,
 },
 
+
 logo: {
   width: 290,
   height: 95,
