@@ -59,16 +59,13 @@ const donutData = [
 
 export default function Dashboard() {
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.surface }]}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <TopBar userName={dashboard.user.name} />
 
         <TitleBar
           title="Dashboard"
           subtitle="Visão geral do seu petshop"
-          onBackPress={() => console.log("Voltar")}
           style={{ marginBottom: 20 }}
         />
 

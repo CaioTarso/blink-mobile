@@ -7,12 +7,11 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Input } from "@/components/admin/navigation/Input";
+import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
 
 export default function Signup() {
   const router = useRouter();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,9 +41,10 @@ export default function Signup() {
         />
 
         <Input
-          label="Email"
+          label="E-mail"
           placeholder="Digite seu e-mail"
           keyboardType="email-address"
+          autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
         />
@@ -57,15 +57,19 @@ export default function Signup() {
           isPassword
         />
 
-
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            // TODO: conectar com services/auth.ts
+            console.log("register:", name, email, password);
+          }}
+        >
           <Text style={styles.buttonText}>Cadastrar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/togoin")}>
+        <TouchableOpacity onPress={() => router.push("/login")}>
           <Text style={styles.linkText}>
-            Já tem uma conta?{" "}
-            <Text style={styles.link}>Entrar</Text>
+            Já tem uma conta? <Text style={styles.link}>Entrar</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -81,11 +85,12 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
 
- logo: {
-  width: 290,
-  height: 95,
-  marginLeft: -70,
-},
+  logo: {
+    width: 290,
+    height: 95,
+    alignSelf: "center",
+  },
+
   title: {
     fontSize: 26,
     lineHeight: 34,

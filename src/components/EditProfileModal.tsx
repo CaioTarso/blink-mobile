@@ -166,7 +166,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
             <Input
               label="Nova senha"
               placeholder="Digite a nova senha"
-              secureTextEntry
+              isPassword
               value={form.password}
               onChangeText={(v) => setForm((p) => ({ ...p, password: v }))}
               error={errors.password}
@@ -175,7 +175,7 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
             <Input
               label="Confirmar nova senha"
               placeholder="Repita a nova senha"
-              secureTextEntry
+              isPassword
               value={form.confirmPassword}
               onChangeText={(v) => setForm((p) => ({ ...p, confirmPassword: v }))}
               error={errors.confirmPassword}

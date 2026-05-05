@@ -1,311 +1,789 @@
 import { Input } from "@/components/Input";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
-import { getServices, Service } from "@/services/services";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
-import { FlatList, Image, Modal as RNModal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal as RNModal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "@/styles/colors";
+import { AddIcon } from "@/components/icons/add-icon";
+
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  active: boolean;
+}
+
+const mockServices: Service[] = [
+  {
+    id: "1",
+    name: "Banho",
+    description: "Banho completo com shampoo especial, secagem e perfume.",
+    price: 60.00,
+    image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=500",
+    active: true,
+  },
+  {
+    id: "2",
+    name: "Tosa",
+    description: "Tosa higiênica padrão da raça, garantindo conforto e estética.",
+    price: 150.00,
+    image: "https://cdn.awsli.com.br/2485/2485118/arquivos/o-spitz-da-pomerania-esta-tomando-banho-com-xampu-no-banho-do-cachorro-1024x683.png",
+    active: true,
+  },
+  {
+    id: "3",
+    name: "Ducha Higiênica",
+    description: "Ducha higiênica padrão da raça, garantindo conforto e estética.",
+    price: 100.00,
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDwQMgvmUQCaklFBPLqXC4eBr-Xa7c_SPKCSiAK0aRew&s",
+    active: true,
+  },
+  {
+    id: "4",
+    name: "Banho de gato",
+    description: "Banho completo com shampoo especial, secagem e perfume.",
+    price: 200.00,
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUoKYbEOtB3aa_tdUT3rYh4S-OAiYR7p-kIw&s",
+    active: false,
+  },
+];
+
+type ToggleTarget = { id: string; name: string; currentActive: boolean };
+type DeleteTarget = { id: string; name: string };
+
+const emptyForm = { name: "", description: "", price: "", imageUrl: "" };
+type FormErrors = Partial<Record<keyof typeof emptyForm, string>>;
 
 export default function AdminServices() {
-    const [services, setServices] = useState<Service[]>([]);
-    const [modalMode, setModalMode] = useState<"new" | "edit" | null>(null); 
-    const [image, setImage] = useState<string | null>(null);
+  const [services, setServices] = useState<Service[]>(mockServices);
+  const [search, setSearch] = useState("");
+  const [modalMode, setModalMode] = useState<"new" | "edit" | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [image, setImage] = useState<string | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<ToggleTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
-    // Função para buscar imagem na galeria do celular
-    const pickImage = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  useEffect(() => {
+    if (modalMode === "edit" && editingService) {
+      setForm({
+        name: editingService.name,
+        description: editingService.description,
+        price: editingService.price.toFixed(2),
+        imageUrl: editingService.image,
+      });
+      setImage(null);
+      setErrors({});
+    } else if (modalMode === "new") {
+      setForm(emptyForm);
+      setImage(null);
+      setErrors({});
+    }
+  }, [modalMode, editingService]);
 
-        if (status !== "granted") {
-            alert("Precisamos de permissão para acessar suas fotos!");
-            return;
-        }
+  const filteredServices = search.trim()
+    ? services.filter((s) =>
+        s.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : services;
 
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Precisamos de permissão para acessar suas fotos!");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!result.canceled) setImage(result.assets[0].uri);
+  };
 
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
-        }
-    };
+  const handleCloseModal = () => {
+    setModalMode(null);
+    setEditingService(null);
+    setForm(emptyForm);
+    setErrors({});
+    setImage(null);
+  };
 
-    // Função para fechar o modal e LIMPAR os dados 
-    const handleCloseModal = () => {
-        setModalMode(null);
-        setImage(null);
-    };
+  const handleOpenEdit = (item: Service) => {
+    setEditingService(item);
+    setModalMode("edit");
+  };
 
-    useEffect(() => {
-        getServices().then(setServices);
-    }, []);
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+    if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
+    if (!form.description.trim()) newErrors.description = "Descrição é obrigatória";
+    if (!form.price.trim()) newErrors.price = "Preço é obrigatório";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    const renderItem = ({ item }: { item: Service }) => (
-        <View style={styles.card}>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardDescription} numberOfLines={2}>{item.description}</Text>
-                <Text style={styles.cardPrice}>R$ {item.price.toFixed(2)}</Text>
-                <View style={styles.cardActions}>
-                    <TouchableOpacity
-                        style={[styles.btnSmall, { backgroundColor: "#FFA500" }]}
-                        onPress={() => setModalMode("edit")}
-                    >
-                        <Text style={styles.btnSmallText}>Editar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.btnSmall, { backgroundColor: "#FF4B4B" }]}>
-                        <Text style={styles.btnSmallText}>Excluir</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
+  const handleSave = () => {
+    if (!validate()) return;
+    if (modalMode === "edit" && editingService) {
+      setServices((prev) =>
+        prev.map((s) =>
+          s.id === editingService.id
+            ? {
+                ...s,
+                name: form.name,
+                description: form.description,
+                price: parseFloat(form.price.replace(",", ".")) || s.price,
+                image: image || form.imageUrl || s.image,
+              }
+            : s
+        )
+      );
+    } else if (modalMode === "new") {
+      const newService: Service = {
+        id: String(Date.now()),
+        name: form.name,
+        description: form.description,
+        price: parseFloat(form.price.replace(",", ".")) || 0,
+        image: image || form.imageUrl,
+        active: true,
+      };
+      setServices((prev) => [...prev, newService]);
+    }
+    handleCloseModal();
+  };
+
+  const handleConfirmToggle = () => {
+    if (!toggleTarget) return;
+    setServices((prev) =>
+      prev.map((s) =>
+        s.id === toggleTarget.id ? { ...s, active: !toggleTarget.currentActive } : s
+      )
     );
+    setToggleTarget(null);
+  };
 
-    return (
-        <View style={styles.container}>
-            {/* HEADER */}
-            <View style={styles.header}>
-                <Ionicons name="chevron-back" size={24} color="black" />
-                <Text style={styles.headerTitle}>Serviços</Text>
-                <View style={{ width: 24 }} />
-            </View>
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    setServices((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+    setDeleteTarget(null);
+  };
 
-            <View style={styles.searchRow}>
-                <View style={{ flex: 1 }}>
-                    <Input placeholder="Buscar" />
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Serviços</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setModalMode("new")}
+          >
+            <AddIcon color="#fff" size={20} />
+            <Text style={styles.addButtonText}>Novo Serviço</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.subtitle}>
+          Gerencie os serviços oferecidos pelo petshop
+        </Text>
+
+        <View style={styles.searchRow}>
+          <Input
+            placeholder="Buscar"
+            isSearch
+            value={search}
+            onChangeText={setSearch}
+            onSearch={() => {}}
+            returnKeyType="search"
+          />
+        </View>
+
+        <FlatList
+          data={filteredServices}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              {/* Foto */}
+              <Image
+                source={{ uri: item.image }}
+                style={[styles.cardImage, !item.active && styles.dimmed]}
+              />
+
+              {/* Conteúdo direito */}
+              <View style={styles.cardInfo}>
+
+                {/* Linha 1: título + badge + toggle */}
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={[styles.cardTitle, !item.active && styles.dimmed]}>
+                      {item.name}
+                    </Text>
+                    {!item.active && (
+                      <View style={styles.inactiveBadge}>
+                        <Text style={styles.inactiveBadgeText}>Inativo</Text>
+                      </View>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.toggleButton,
+                      item.active ? styles.btnDeactivate : styles.btnActivate,
+                    ]}
+                    onPress={() =>
+                      setToggleTarget({ id: item.id, name: item.name, currentActive: item.active })
+                    }
+                  >
+                    <Text style={styles.toggleText}>
+                      {item.active ? "Desativar" : "Ativar"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => setModalMode("new")}
+
+                {/* Descrição e preço */}
+                <Text
+                  style={[styles.cardDescription, !item.active && styles.dimmed]}
+                  numberOfLines={2}
                 >
-                    <Ionicons name="add" size={25} color="white" />
-                </TouchableOpacity>
-            </View>
+                  {item.description}
+                </Text>
+                <Text style={[styles.cardPrice, !item.active && styles.dimmed]}>
+                  R$ {item.price.toFixed(2)}
+                </Text>
 
-            <FlatList
-                data={services}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
-            />
+                {/* Linha de botões: Editar largo + Excluir menor */}
+                <View style={styles.cardActions}>
+                  <TouchableOpacity
+                    style={[
+                      styles.btnEdit,
+                      item.active ? { backgroundColor: "#FFA500" } : styles.btnDisabled,
+                    ]}
+                    onPress={() => handleOpenEdit(item)}
+                    disabled={!item.active}
+                  >
+                    <Text style={styles.btnText}>Editar</Text>
+                  </TouchableOpacity>
 
-            {/* MODAL (NOVO OU EDITAR SERVIÇO) */}
-            <RNModal visible={modalMode !== null} animationType="slide" transparent={true}>
-                <View style={styles.modalOverlay}>
-                    <ScrollView contentContainerStyle={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Ionicons name="chevron-back" size={24} color="black" onPress={handleCloseModal} />
-                            <Text style={styles.modalTitle}>
-                                {modalMode === "new" ? "Novo serviço" : "Editar serviço"}
-                            </Text>
-                            <Ionicons name="close" size={28} color="black" onPress={handleCloseModal} />
-                        </View>
-
-                        <Text style={styles.label}>Nome</Text>
-                        <Input placeholder="" />
-
-                        <Text style={styles.label}>Descrição</Text>
-                        <Input placeholder="" multiline />
-
-                        <Text style={styles.label}>Preço</Text>
-                        <Input placeholder="" keyboardType="numeric" />
-
-                        <Text style={styles.label}>URL da imagem</Text>
-                        <Input placeholder="" />
-
-                        <Text style={styles.sectionTitle}>Arquivo</Text>
-                        <TouchableOpacity style={styles.dashedBox} onPress={pickImage}>
-                            {image ? (
-                                <Image source={{ uri: image }} style={{ width: "100%", height: 100, borderRadius: 10 }} />
-                            ) : (
-                                <>
-                                    <Text style={styles.orangeLink}>Fazer o upload ou copiar link</Text>
-                                    <Ionicons name="document-text" size={24} color="#FFD700" style={{ marginTop: 5 }} />
-                                </>
-                            )}
-                        </TouchableOpacity>
-
-                        <View style={styles.modalFooter}>
-                            <TouchableOpacity 
-                                style={[styles.btnLarge, { backgroundColor: "#62A97C" }]}
-                                onPress={handleCloseModal} // Simulando salvar e fechar/limpar
-                            >
-                                <Text style={styles.btnLargeText}>
-                                    {modalMode === "new" ? "Salvar" : "Atualizar"}
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.btnLarge, { backgroundColor: "#FF4B4B" }]}
-                                onPress={handleCloseModal}
-                            >
-                                <Text style={styles.btnLargeText}>Cancelar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
+                  <TouchableOpacity
+                    style={[
+                      styles.btnDelete,
+                      item.active ? { backgroundColor: "#E5484D" } : styles.btnDisabled,
+                    ]}
+                    onPress={() => setDeleteTarget({ id: item.id, name: item.name })}
+                    disabled={!item.active}
+                  >
+                    <Text style={styles.btnText}>Excluir</Text>
+                  </TouchableOpacity>
                 </View>
-            </RNModal>
-
-            <View style={styles.menuWrapper}>
-                <AdminMenu />
+              </View>
             </View>
+          )}
+        />
+      </View>
+
+      {/* Modal confirmação ativar/desativar */}
+      <RNModal
+        visible={!!toggleTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setToggleTarget(null)}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Confirmar ação</Text>
+            <Text style={styles.confirmMessage}>
+              Tem certeza que deseja{" "}
+              <Text style={styles.confirmBold}>
+                {toggleTarget?.currentActive ? "desativar" : "ativar"}
+              </Text>{" "}
+              o serviço{" "}
+              <Text style={styles.confirmBold}>{toggleTarget?.name}</Text>?
+            </Text>
+            <View style={styles.confirmActions}>
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: colors.secondary }]}
+                onPress={handleConfirmToggle}
+              >
+                <Text style={styles.confirmBtnTextLight}>Sim</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: "#EEE" }]}
+                onPress={() => setToggleTarget(null)}
+              >
+                <Text style={styles.confirmBtnTextDark}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-    );
+      </RNModal>
+
+      {/* Modal confirmação excluir */}
+      <RNModal
+        visible={!!deleteTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteTarget(null)}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Confirmar exclusão</Text>
+            <Text style={styles.confirmMessage}>
+              Tem certeza que deseja{" "}
+              <Text style={styles.confirmBold}>excluir</Text>{" "}
+              o serviço{" "}
+              <Text style={styles.confirmBold}>{deleteTarget?.name}</Text>?
+            </Text>
+            <View style={styles.confirmActions}>
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: colors.secondary }]}
+                onPress={handleConfirmDelete}
+              >
+                <Text style={styles.confirmBtnTextLight}>Sim</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmBtn, { backgroundColor: "#EEE" }]}
+                onPress={() => setDeleteTarget(null)}
+              >
+                <Text style={styles.confirmBtnTextDark}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </RNModal>
+
+      {/* Modal novo/editar serviço */}
+      <RNModal
+        visible={modalMode !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={handleCloseModal}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {modalMode === "new" ? "Novo serviço" : "Editar serviço"}
+            </Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScroll}
+            >
+              <Input
+                label="Nome"
+                placeholder="Nome do serviço"
+                value={form.name}
+                onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
+                error={errors.name}
+              />
+              <Input
+                label="Descrição"
+                placeholder="Descreva o serviço"
+                multiline
+                value={form.description}
+                onChangeText={(v) => setForm((p) => ({ ...p, description: v }))}
+                error={errors.description}
+              />
+              <Input
+                label="Preço"
+                placeholder="0,00"
+                keyboardType="numeric"
+                value={form.price}
+                onChangeText={(v) => setForm((p) => ({ ...p, price: v }))}
+                error={errors.price}
+              />
+              <Input
+                label="URL da imagem"
+                placeholder="https://..."
+                value={form.imageUrl}
+                onChangeText={(v) => setForm((p) => ({ ...p, imageUrl: v }))}
+              />
+
+              <Text style={styles.sectionTitle}>Imagem</Text>
+              <TouchableOpacity style={styles.dashedBox} onPress={pickImage}>
+                {image ? (
+                  <Image
+                    source={{ uri: image }}
+                    style={{ width: "100%", height: 100, borderRadius: 10 }}
+                  />
+                ) : (
+                  <>
+                    <Text style={styles.uploadText}>Fazer upload ou copiar link</Text>
+                    <Ionicons name="document-text" size={24} color="#FFD700" style={{ marginTop: 5 }} />
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCloseModal}>
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
+                <Text style={styles.submitText}>
+                  {modalMode === "new" ? "Salvar" : "Atualizar"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </RNModal>
+
+      <AdminMenu />
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F8F8F8",
-        paddingHorizontal: 20
-    },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginTop: 50,
-        marginBottom: 20
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: "bold"
-    },
-    searchRow: {
-        flexDirection: "row",
-        gap: 5,
-        height: 45,
-        marginBottom: 20,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    addButton: {
-        backgroundColor: "#4CD964",
-        width: 50,
-        height: 45,
-        borderRadius: 12,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: -15
-    },
-    listContent: {
-        paddingBottom: 120
-    },
-    card: {
-        backgroundColor: "#E0E0E0",
-        borderRadius: 15,
-        flexDirection: "row",
-        padding: 10,
-        marginBottom: 15
-    },
-    cardImage: {
-        width: 100,
-        height: 100, // Ajustado para ser quadrado e fixo
-        borderRadius: 10
-    },
-    cardInfo: {
-        flex: 1,
-        marginLeft: 15
-    },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: "bold"
-    },
-    cardDescription: {
-        fontSize: 12,
-        color: "#666",
-        marginVertical: 4
-    },
-    cardPrice: {
-        fontSize: 14,
-        fontWeight: "bold",
-        marginBottom: 8
-    },
-    cardActions: {
-        flexDirection: "row",
-        gap: 8
-    },
-    btnSmall: {
-        paddingVertical: 6,
-        paddingHorizontal: 15,
-        borderRadius: 8
-    },
-    btnSmallText: {
-        color: "white",
-        fontSize: 12,
-        fontWeight: "bold"
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        justifyContent: "flex-end"
-    },
-    modalContent: {
-        backgroundColor: "white",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        padding: 25,
-        paddingBottom: 40
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 30
-    },
-    modalTitle: {
-        fontSize: 22,
-        fontWeight: "bold"
-    },
-    label: {
-        fontSize: 14,
-        color: "#333",
-        marginTop: 15,
-        marginBottom: 5,
-        fontWeight: "600"
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginTop: 25
-    },
-    dashedBox: {
-        borderWidth: 1,
-        borderColor: "#CCC",
-        borderStyle: "dashed",
-        borderRadius: 15,
-        padding: 20,
-        alignItems: "center",
-        marginTop: 10,
-        minHeight: 100,
-        justifyContent: "center"
-    },
-    orangeLink: {
-        color: "#FFA500",
-        fontWeight: "bold",
-        fontSize: 14
-    },
-    modalFooter: {
-        flexDirection: "row",
-        gap: 15,
-        marginTop: 30
-    },
-    btnLarge: {
-        flex: 1,
-        padding: 16,
-        borderRadius: 15,
-        alignItems: "center"
-    },
-    btnLargeText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16
-    },
-    menuWrapper: {
-        position: "absolute",
-        bottom: 30,
-        left: 20,
-        right: 20
-    }
+  container: {
+    flex: 1,
+    backgroundColor: "#FBFBFB",
+  },
+
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    flex: 1,
+    marginLeft: 16,
+  },
+
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+    marginBottom: 10,
+  },
+
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    marginBottom: 15,
+    color: "gray",
+    marginLeft: 16,
+  },
+
+  searchRow: {
+    marginBottom: 16,
+  },
+
+  listContent: {
+    paddingBottom: 80,
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    flexDirection: "row",
+    padding: 10,
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  dimmed: {
+    opacity: 0.4,
+  },
+
+  cardImage: {
+    width: 100,
+    height: 120,
+    borderRadius: 10,
+  },
+
+  cardInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "space-between",
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 4,
+  },
+
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+    marginRight: 8,
+    flexWrap: "wrap",
+  },
+
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+
+  inactiveBadge: {
+    backgroundColor: "#6B7280",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 20,
+  },
+
+  inactiveBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "600",
+  },
+
+  toggleButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 72,
+  },
+
+  toggleText: {
+    color: "#FFF",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  cardDescription: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+
+  cardPrice: {
+    fontSize: 13,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+
+  cardActions: {
+    flexDirection: "row",
+    gap: 6,
+  },
+
+  btnEdit: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  btnDelete: {
+    width: "35%",
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  btnText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  btnDisabled: {
+    backgroundColor: "#CCC",
+  },
+
+  btnDeactivate: {
+    backgroundColor: "#7291C0",
+  },
+
+  btnActivate: {
+    backgroundColor: "#54A779",
+  },
+
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+
+  confirmCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    gap: 16,
+  },
+
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  confirmMessage: {
+    fontSize: 14,
+    color: "#444",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  confirmBold: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  confirmActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  confirmBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  confirmBtnTextLight: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
+
+  confirmBtnTextDark: {
+    color: "#555",
+    fontWeight: "600",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+
+  modalContainer: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    maxHeight: "90%",
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primary,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+
+  modalScroll: {
+    alignItems: "center",
+    paddingBottom: 8,
+  },
+
+  sectionTitle: {
+    alignSelf: "flex-start",
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.primary,
+    marginBottom: 8,
+    marginLeft: "5%",
+  },
+
+  dashedBox: {
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderStyle: "dashed",
+    borderRadius: 15,
+    padding: 20,
+    alignItems: "center",
+    marginBottom: 16,
+    width: "90%",
+    minHeight: 100,
+    justifyContent: "center",
+  },
+
+  uploadText: {
+    color: "#FFA500",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 16,
+  },
+
+  cancelButton: {
+    flex: 1,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#EEE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cancelText: {
+    color: "#555",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  submitButton: {
+    flex: 1,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.secondary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  submitText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
 });

@@ -1,6 +1,6 @@
+import React, { useState } from "react";
 import {
   Image,
-  ImageBackground,
   StyleSheet,
   View,
   Text,
@@ -8,102 +8,146 @@ import {
 } from "react-native";
 import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
+import { Input } from "@/components/Input";
 
-export default function Login() {
+export default function Welcome() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/login/background.png")}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <View style={styles.topContent}>
-          <Text style={styles.text}>Bem-Vindo!</Text>
+    <View style={styles.container}>
+      <Image
+        source={require("../../../assets/images/logo/logo-black.png")}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-          <Image
-            source={require("../../../assets/images/logo/logo-white.png")}
-            style={styles.logo}
-            resizeMode="contain"
+      <View style={styles.content}>
+        <Text style={styles.title}>
+          <Text style={{ fontWeight: "bold" }}>Cuidado </Text>
+          e
+          <Text style={{ fontWeight: "bold" }}> carinho </Text>
+          para o seu pet em um clique.
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Insira seu e-mail e senha para fazer login.
+        </Text>
+
+        <View style={styles.formContainer}>
+          <Input
+            label="E-mail"
+            placeholder="Digite seu e-mail"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
-        </View>
 
-        <View style={styles.buttons}>
-          <TouchableOpacity  onPress={() => router.push("/togoin")} style={styles.button}>
-            <Text style={styles.buttonText}>Entrar</Text>
+          <Input
+            label="Senha"
+            placeholder="Digite sua senha"
+            value={password}
+            onChangeText={setPassword}
+            isPassword
+          />
+
+          <TouchableOpacity onPress={() => router.push("/recover")}>
+            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
           </TouchableOpacity>
 
-          <Text style={styles.linkText}>
-            Não tem uma conta?{" "}
-            <Text onPress={() => router.push("/register")} style={styles.link}>Cadastre-se</Text>
-          </Text>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => {
+              // TODO: conectar com AuthContext e chamar services/auth.ts
+              console.log("login:", email, password);
+            }}
+          >
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/register")}>
+            <Text style={styles.linkText}>
+              Não tem uma conta?{" "}
+              <Text style={styles.link}>Cadastre-se</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-  },
-
   container: {
     flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 100,
-    paddingBottom: 50,
-  },
-
-  topContent: {
-    alignItems: "center",
+    backgroundColor: "#F8F8F8",
+    paddingTop: 40,
   },
 
   logo: {
-    width: 301,
-    height: 132,
+    width: 290,
+    height: 95,
+    alignSelf: "center",
   },
 
-  text: {
-    fontSize: 34,
-    fontWeight: "bold",
-    color: "#fff",
+  content: {
+    paddingHorizontal: 24,
   },
 
-  buttons: {
+  title: {
+    fontSize: 28,
+    lineHeight: 36,
+    color: colors.text,
+    fontWeight: "500",
     width: "100%",
-    alignItems: "center",
-    paddingHorizontal: 30,
+    marginBottom: 8,
   },
 
-  button: {
-    backgroundColor: colors.accent,
-    width: "70%",
-    height: 55,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
+  subtitle: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 24,
   },
 
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 24,
+  formContainer: {
+    width: "100%",
+    gap: 2,
+    marginTop: 12,
+  },
+
+  forgotPasswordText: {
+    textAlign: "right",
+    color: colors.primary,
+    fontSize: 12,
+    marginTop: 4,
+    marginBottom: 14,
+  },
+
+  loginButton: {
+    backgroundColor: colors.secondary,
+    paddingVertical: 15,
+    borderRadius: 6,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  loginButtonText: {
+    color: colors.surface,
+    fontSize: 14,
     fontWeight: "600",
   },
 
   linkText: {
-    color: "#fff",
-    fontSize: 16,
+    marginTop: 30,
+    fontSize: 13,
+    color: "#666",
     textAlign: "center",
   },
 
   link: {
-    textDecorationLine: "underline",
+    color: colors.primary,
     fontWeight: "bold",
   },
 });

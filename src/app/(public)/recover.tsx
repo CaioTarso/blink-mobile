@@ -7,7 +7,7 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Input } from "@/components/admin/navigation/Input";
+import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
 
 export default function ForgotPassword() {
@@ -22,9 +22,7 @@ export default function ForgotPassword() {
         resizeMode="contain"
       />
 
-      <Text style={styles.title}>
-        Recuperar senha
-      </Text>
+      <Text style={styles.title}>Recuperar senha</Text>
 
       <Text style={styles.subtitle}>
         Informe seu e-mail para receber o link de recuperação.
@@ -32,22 +30,27 @@ export default function ForgotPassword() {
 
       <View style={styles.formContainer}>
         <Input
-          label="Email"
+          label="E-mail"
           placeholder="Digite seu e-mail"
           keyboardType="email-address"
+          autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
         />
 
-
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            // TODO: conectar com services/auth.ts
+            console.log("recover:", email);
+          }}
+        >
           <Text style={styles.buttonText}>Enviar link</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/togoin")}>
+        <TouchableOpacity onPress={() => router.push("/login")}>
           <Text style={styles.linkText}>
-            Voltar para{" "}
-            <Text style={styles.link}>Login</Text>
+            Voltar para <Text style={styles.link}>Login</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -58,16 +61,16 @@ export default function ForgotPassword() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:colors.surface,
+    backgroundColor: colors.surface,
     paddingHorizontal: 24,
     paddingTop: 40,
   },
 
- logo: {
-  width: 290,
-  height: 95,
-  marginLeft: -70,
-},
+  logo: {
+    width: 290,
+    height: 95,
+    alignSelf: "center",
+  },
 
   title: {
     fontSize: 26,
