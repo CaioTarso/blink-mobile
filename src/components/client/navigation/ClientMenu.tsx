@@ -1,47 +1,65 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { colors } from "@/styles/colors";
+import { useRouter, usePathname } from "expo-router";
 
-export function ServiceMenu() {
-  const [active, setActive] = useState("Dashboard");
+import { PetsIcon } from "@/components/admin/icons/petsicon";
+import { ServicesIcon } from "@/components/admin/icons/services-icon";
+import { AppointmentsIcon } from "@/components/admin/icons/appointments-icon";
+
+export function ClientMenu() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isPets = pathname.includes("pets");
+  const isServices = pathname.includes("services");
+  const isAppointments = pathname.includes("appointments");
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
+        
         <MenuItem
-          icon="pets"
+          Icon={PetsIcon}
           label="Meus Pets"
-          active={active === "Dashboard"}
-          onPress={() => setActive("Dashboard")}
+          active={isPets}
+          onPress={() => router.push("/(protected)/(client)/pets")}
         />
+
         <MenuItem
-          icon="calendar-today-schedule"
-          label="Agendar Serviços"
-          active={active === "Serviços"}
-          onPress={() => setActive("Serviços")}
+          Icon={ServicesIcon}
+          label="Agendar"
+          active={isServices}
+          onPress={() => router.push("/(protected)/(client)/appointments")}
         />
+
         <MenuItem
-          icon="list-alt"
-          label="Meus Agendamentos"
-          active={active === "Agenda"}
-          onPress={() => setActive("Agenda")}
+          Icon={AppointmentsIcon}
+          label="Agendamentos"
+          active={isAppointments}
+          onPress={() => router.push("/(protected)/(client)/appointments")}
         />
       </View>
     </View>
   );
 }
 
-function MenuItem({ icon, label, active, onPress }: any) {
+function MenuItem({
+  Icon,
+  label,
+  active,
+  onPress,
+}: {
+  Icon: React.ComponentType<{ color: string }>;
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   return (
     <TouchableOpacity style={styles.item} onPress={onPress}>
       <View style={[styles.iconContainer, active && styles.activeIcon]}>
-        <MaterialIcons
-          name={icon}
-          size={28}
-          color={active ? "#fff" : colors.primary}
-        />
+        <Icon color={active ? "#fff" : "#000" } />
       </View>
+
       <Text style={[styles.label, active && styles.activeLabel]}>
         {label}
       </Text>
@@ -51,8 +69,6 @@ function MenuItem({ icon, label, active, onPress }: any) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: 0,
-    paddingBottom: 0,
     backgroundColor: "transparent",
   },
 
@@ -61,15 +77,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
 
-  
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
-
     elevation: 10,
   },
 
@@ -78,21 +92,22 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    padding: 9,
+    padding: 10,
     borderRadius: 20,
   },
 
   activeIcon: {
-    backgroundColor: colors.primary,
+    backgroundColor: "#FFA600",
   },
 
   label: {
     fontSize: 12,
     marginTop: 4,
-    color: colors.primary,
+    color: "#000",
   },
 
   activeLabel: {
     fontWeight: "600",
+    color: "#FFA600",
   },
 });
