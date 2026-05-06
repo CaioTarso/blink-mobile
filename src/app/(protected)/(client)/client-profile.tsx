@@ -120,9 +120,6 @@ export default function ClientProfileScreen() {
             </Text>
           </View>
           <Text style={styles.userName}>{user.name}</Text>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>Cliente</Text>
-          </View>
         </View>
 
         <View style={styles.section}>
@@ -214,20 +211,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: "center",
     paddingHorizontal: 20,
-  },
-
-  roleBadge: {
-    marginTop: 6,
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-
-  roleText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
   },
 
   section: {
