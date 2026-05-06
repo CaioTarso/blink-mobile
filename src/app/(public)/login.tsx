@@ -5,15 +5,28 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/Input";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Welcome() {
   const router = useRouter();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    setError("");
+    try {
+      await login(email, password);
+    } catch (e: any) {
+      setError(e.message || "Erro ao fazer login");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -53,18 +66,22 @@ export default function Welcome() {
             isPassword
           />
 
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
           <TouchableOpacity onPress={() => router.push("/recover")}>
             <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => {
-              // TODO: conectar com AuthContext e chamar services/auth.ts
-              console.log("login:", email, password);
-            }}
+            style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}
           >
-            <Text style={styles.loginButtonText}>Entrar</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Entrar</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push("/register")}>
@@ -117,6 +134,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
+  errorText: {
+    color: "#E5484D",
+    fontSize: 13,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+
   forgotPasswordText: {
     textAlign: "right",
     color: colors.primary,
@@ -131,6 +155,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     marginTop: 10,
+  },
+
+  loginButtonDisabled: {
+    opacity: 0.7,
   },
 
   loginButtonText: {

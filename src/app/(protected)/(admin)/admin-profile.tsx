@@ -14,6 +14,7 @@ import { EditIcon } from "@/components/icons/edit-icon";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 
 const mockUser = {
   name: "João Silva",
@@ -25,6 +26,7 @@ const mockUser = {
 };
 
 export default function AdminProfileScreen() {
+  const { logout } = useAuth();
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -57,7 +59,7 @@ export default function AdminProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    // TODO: conectar com AuthContext — limpar token e redirecionar para login
+    logout();
   };
 
   return (
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    marginLeft: 16,
+    marginLeft: 32,
   },
 
   avatarContainer: {

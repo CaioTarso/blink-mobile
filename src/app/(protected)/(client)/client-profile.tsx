@@ -13,6 +13,7 @@ import { EditIcon } from "@/components/icons/edit-icon";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 
 const mockUser = {
   name: "Carlos Lima",
@@ -24,6 +25,7 @@ const mockUser = {
 };
 
 export default function ClientProfileScreen() {
+  const { logout } = useAuth();
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -56,7 +58,7 @@ export default function ClientProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    // TODO: conectar com AuthContext
+    logout();
   };
 
   return (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 import {
   AppointmentCard,
   Status,
@@ -58,6 +59,7 @@ const staffData = {
 };
 
 export default function StaffAgenda() {
+  const { logout } = useAuth();
   const router = useRouter();
   const [appointments, setAppointments] = useState(staffData.appointments);
   const [selectedFilter, setSelectedFilter] = useState<DateFilterType>("today");
@@ -75,7 +77,7 @@ export default function StaffAgenda() {
 
   function handleLogout() {
     setLogoutModal(false);
-    // TODO: conectar com AuthContext
+    logout();
   }
 
   return (
