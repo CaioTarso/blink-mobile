@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { Card } from "@/components/Card";
 import { AdminButton } from "./AdminButton";
-import { UserIcon } from "./icons/user-icon";
+import { colors } from "@/styles/colors";
 
 type UserCardProps = {
   name: string;
@@ -34,7 +35,11 @@ export function UserCard({
         <View style={styles.header}>
           <View style={styles.left}>
             <View style={styles.avatar}>
-              <UserIcon color={active ? "#000" : "#999"} />
+              <Ionicons
+                name="person-circle"
+                size={46}
+                color={active ? colors.primary : "#999"}
+              />
             </View>
 
             <View style={styles.info}>
@@ -118,7 +123,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#EEE",
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
   },

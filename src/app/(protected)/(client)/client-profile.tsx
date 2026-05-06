@@ -9,11 +9,9 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-
-import { BackIcon } from "@/components/icons/back-icon";
 import { EditIcon } from "@/components/icons/edit-icon";
 import { EditProfileModal } from "@/components/EditProfileModal";
+import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { colors } from "@/styles/colors";
 
 const mockUser = {
@@ -25,8 +23,7 @@ const mockUser = {
   address: "Rua das Flores, 123 - Fortaleza, CE",
 };
 
-export default function ProfileScreen() {
-  const router = useRouter();
+export default function ClientProfileScreen() {
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -59,7 +56,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
-    // lógica de logout aqui futuramente
+    // TODO: conectar com AuthContext
   };
 
   return (
@@ -87,9 +84,9 @@ export default function ProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sair</Text>
             <Text style={styles.modalMessage}>
-              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
+              Tem certeza que deseja{" "}
+              <Text style={styles.modalAction}>sair</Text> da sua conta?
             </Text>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
@@ -97,7 +94,6 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.confirmText}>Sim</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setLogoutModalVisible(false)}
@@ -111,12 +107,7 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <BackIcon color="#000" />
-          </TouchableOpacity>
-
           <Text style={styles.headerTitle}>Minha Conta</Text>
-
           <TouchableOpacity onPress={() => setModalVisible(true)}>
             <EditIcon color={colors.primary} />
           </TouchableOpacity>
@@ -129,6 +120,9 @@ export default function ProfileScreen() {
             </Text>
           </View>
           <Text style={styles.userName}>{user.name}</Text>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>Cliente</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -154,6 +148,8 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ClientMenu />
     </SafeAreaView>
   );
 }
@@ -181,14 +177,14 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
     marginBottom: 24,
   },
 
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    flex: 1,
+    marginLeft: 16,
   },
 
   avatarContainer: {
@@ -218,6 +214,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: "center",
     paddingHorizontal: 20,
+  },
+
+  roleBadge: {
+    marginTop: 6,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+
+  roleText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
 
   section: {

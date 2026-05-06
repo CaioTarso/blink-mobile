@@ -1,69 +1,115 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, TouchableWithoutFeedback, StyleSheet, Animated } from "react-native";
 import { useRouter, usePathname } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-import { PetsIcon } from "@/components/admin/icons/petsicon";
-import { ServicesIcon } from "@/components/admin/icons/services-icon";
-import { AppointmentsIcon } from "@/components/admin/icons/appointments-icon";
+const ACTIVE_COLOR = "#FFA600";
+const INACTIVE_COLOR = "#555";
+
+function MenuItem({
+  icon,
+  iconActive,
+  active,
+  onPress,
+}: {
+  icon: string;
+  iconActive: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(active ? 1.15 : 1)).current;
+  const bgOpacity = useRef(new Animated.Value(active ? 1 : 0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: active ? 1.15 : 1,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 8,
+      }),
+      Animated.timing(bgOpacity, {
+        toValue: active ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [active]);
+
+  const handlePressIn = () => {
+    Animated.spring(pressScale, {
+      toValue: 0.8,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 0,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(pressScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 12,
+    }).start();
+    onPress();
+  };
+
+  return (
+    <TouchableWithoutFeedback onPressIn={handlePressIn} onPressOut={handlePressOut}>
+      <Animated.View style={[styles.item, { transform: [{ scale: pressScale }] }]}>
+        <Animated.View style={[styles.iconWrapper, { transform: [{ scale }] }]}>
+          <Animated.View style={[styles.activeBg, { opacity: bgOpacity }]} />
+          <Ionicons
+            name={(active ? iconActive : icon) as any}
+            size={24}
+            color={active ? ACTIVE_COLOR : INACTIVE_COLOR}
+          />
+        </Animated.View>
+      </Animated.View>
+    </TouchableWithoutFeedback>
+  );
+}
 
 export function ClientMenu() {
   const router = useRouter();
   const pathname = usePathname();
 
   const isPets = pathname.includes("pets");
-  const isServices = pathname.includes("services");
-  const isAppointments = pathname.includes("appointments");
+  const isBooking = pathname.includes("booking");
+  const isAgenda = pathname.includes("client-agenda");
+  const isProfile = pathname.includes("client-profile");
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.container}>
-        
         <MenuItem
-          Icon={PetsIcon}
-          label="Meus Pets"
+          icon="paw-outline"
+          iconActive="paw"
           active={isPets}
           onPress={() => router.push("/(protected)/(client)/pets")}
         />
-
         <MenuItem
-          Icon={ServicesIcon}
-          label="Agendar"
-          active={isServices}
-          onPress={() => router.push("/(protected)/(client)/appointments")}
+          icon="calendar-number-outline"
+          iconActive="calendar-number"
+          active={isBooking}
+          onPress={() => router.push("/(protected)/(client)/booking")}
         />
-
         <MenuItem
-          Icon={AppointmentsIcon}
-          label="Agendamentos"
-          active={isAppointments}
-          onPress={() => router.push("/(protected)/(client)/appointments")}
+          icon="calendar-outline"
+          iconActive="calendar"
+          active={isAgenda}
+          onPress={() => router.push("/(protected)/(client)/client-agenda")}
+        />
+        <MenuItem
+          icon="person-circle-outline"
+          iconActive="person-circle"
+          active={isProfile}
+          onPress={() => router.push("/(protected)/(client)/client-profile")}
         />
       </View>
     </View>
-  );
-}
-
-function MenuItem({
-  Icon,
-  label,
-  active,
-  onPress,
-}: {
-  Icon: React.ComponentType<{ color: string }>;
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity style={styles.item} onPress={onPress}>
-      <View style={[styles.iconContainer, active && styles.activeIcon]}>
-        <Icon color={active ? "#fff" : "#000" } />
-      </View>
-
-      <Text style={[styles.label, active && styles.activeLabel]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
   );
 }
 
@@ -77,37 +123,36 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingVertical: 8,
-    borderRadius: 12,
-
+    paddingVertical: 10,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: -4 },
     elevation: 10,
   },
 
   item: {
     alignItems: "center",
+    padding: 4,
   },
 
-  iconContainer: {
-    padding: 10,
-    borderRadius: 20,
+  iconWrapper: {
+    width: 44,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
   },
 
-  activeIcon: {
-    backgroundColor: "#FFA600",
-  },
-
-  label: {
-    fontSize: 12,
-    marginTop: 4,
-    color: "#000",
-  },
-
-  activeLabel: {
-    fontWeight: "600",
-    color: "#FFA600",
+  activeBg: {
+    position: "absolute",
+    width: 44,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFF3DC",
   },
 });

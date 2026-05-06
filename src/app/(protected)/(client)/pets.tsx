@@ -8,8 +8,8 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { colors } from "@/styles/colors";
+import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { ModalNewPet } from "@/components/client/navigation/ModalNewPet";
 import { ModalDeletePet } from "@/components/client/navigation/ModalDeletePet";
 
@@ -51,7 +51,6 @@ const mockPets: Pet[] = [
 ];
 
 export default function ClientPets() {
-  const router = useRouter();
   const [pets, setPets] = useState<Pet[]>(mockPets);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
@@ -123,13 +122,8 @@ export default function ClientPets() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Meus Pets</Text>
-            <Text style={styles.headerSubtitle}>
-              Cadastre e gerencie seus animais de estimação
-            </Text>
-          </View>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Meus Pets</Text>
 
           <TouchableOpacity
             style={styles.newButton}
@@ -142,6 +136,10 @@ export default function ClientPets() {
             <Text style={styles.newButtonText}>Novo Pet</Text>
           </TouchableOpacity>
         </View>
+
+        <Text style={styles.subtitle}>
+          Cadastre e gerencie seus animais de estimação
+        </Text>
 
         <FlatList
           data={pets}
@@ -198,6 +196,8 @@ export default function ClientPets() {
           }}
         />
       </View>
+
+      <ClientMenu />
     </SafeAreaView>
   );
 }
@@ -212,47 +212,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  backButton: {
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
-  header: {
-    flexDirection: "row",
-    gap: 6,
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: "#888",
-    marginTop: 4,
-    maxWidth: 200,
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginLeft: 16,
   },
   newButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#54A779",
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
-    marginBottom: 10,
   },
   newButtonText: {
     color: "#fff",
-    fontWeight: "700",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  subtitle: {
     fontSize: 14,
+    marginBottom: 15,
+    color: "gray",
+    marginLeft: 16,
   },
   listContent: {
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   card: {
-    backgroundColor: colors.surface || colors.primary,
+    backgroundColor: colors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -262,7 +257,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    
   },
   cardHeader: {
     flexDirection: "row",
@@ -274,7 +268,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.surface,
+    backgroundColor: "#f5f5f5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -299,6 +293,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    minWidth: 72,
+    alignItems: "center",
   },
   typeBadgeText: {
     color: "#ffffff",
@@ -307,7 +303,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: "row",
-    backgroundColor: colors.surface,
+    backgroundColor: "#f5f5f5",
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 8,
@@ -347,12 +343,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   editButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#ffffff",
     fontWeight: "600",
   },
   deleteButton: {
-    flex: 1,
+    width: "30%",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#E5484D",
@@ -360,7 +356,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   deleteButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#ffffff",
     fontWeight: "600",
   },

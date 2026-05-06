@@ -1,11 +1,21 @@
 import { getServices } from "@/services/services";
-import { getProfessionals } from "@/services/users"; // Alterado para a função que filtra a equipe
+import { getProfessionals } from "@/services/users";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import { ClientMenu } from "@/components/client/navigation/ClientMenu";
+import { colors } from "@/styles/colors";
+import { useRouter } from "expo-router";
 
-// Configuração PT-BR
 LocaleConfig.locales["pt-br"] = {
   monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
   monthNamesShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
@@ -22,6 +32,7 @@ const MOCK_PETS = [
 ];
 
 export default function BookingScreen() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
   const [professionals, setProfessionals] = useState([]);
@@ -31,15 +42,16 @@ export default function BookingScreen() {
     service: null,
     professional: null,
     date: "",
-    time: null
+    time: null,
   };
 
   const [appointment, setAppointment] = useState(initialState);
 
   useEffect(() => {
     getServices().then(setServices);
-    // Usando getProfessionals para garantir que só venha Admin/Staff ativo
-    getProfessionals().then(setProfessionals).catch(() => console.log("Erro ao carregar profissionais"));
+    getProfessionals()
+      .then(setProfessionals)
+      .catch(() => console.log("Erro ao carregar profissionais"));
   }, []);
 
   const handleCancel = () => {
@@ -47,30 +59,39 @@ export default function BookingScreen() {
     setStep(1);
   };
 
-  const renderStepper = () => (
+  const renderStepper = () =>
     step < 6 && (
       <View style={styles.stepperContainer}>
-        {[1, 2, 3, 4, 5].map((item, index) => (
-          <React.Fragment key={item}>
-            <View style={[styles.stepCircle, step === item ? styles.activeCircle : styles.inactiveCircle]}>
-              <Text style={styles.stepNumberText}>{item}</Text>
-            </View>
-            {index < 4 && <View style={styles.stepLine} />}
-          </React.Fragment>
-        ))}
+        {[1, 2, 3, 4, 5].map((item, index) => {
+          const isPast = item < step;
+          const isCurrent = item === step;
+          const isFuture = item > step;
+          return (
+            <React.Fragment key={item}>
+              <TouchableOpacity
+                onPress={() => isPast && setStep(item)}
+                disabled={isFuture || isCurrent}
+              >
+                <View style={[
+                  styles.stepCircle,
+                  isCurrent && styles.activeCircle,
+                  isPast && styles.pastCircle,
+                  isFuture && styles.inactiveCircle,
+                ]}>
+                  <Text style={styles.stepNumberText}>{item}</Text>
+                </View>
+              </TouchableOpacity>
+              {index < 4 && <View style={styles.stepLine} />}
+            </React.Fragment>
+          );
+        })}
       </View>
-    )
-  );
+    );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.topRow}>
-          {step < 6 && (
-            <TouchableOpacity onPress={() => step > 1 && setStep(step - 1)}>
-              <Ionicons name="chevron-back" size={28} color="#000" />
-            </TouchableOpacity>
-          )}
           <View style={styles.titleWrapper}>
             <Text style={styles.mainTitle}>
               {step === 6 ? "Tudo pronto!" : "Agendar Serviço"}
@@ -93,7 +114,11 @@ export default function BookingScreen() {
 
         {/* PASSO 1: PETS */}
         {step === 1 && MOCK_PETS.map(pet => (
-          <TouchableOpacity key={pet.id} style={styles.card} onPress={() => { setAppointment({ ...appointment, pet }); setStep(2); }}>
+          <TouchableOpacity
+            key={pet.id}
+            style={styles.card}
+            onPress={() => { setAppointment({ ...appointment, pet }); setStep(2); }}
+          >
             <Image source={{ uri: pet.image }} style={styles.petImage} />
             <View>
               <Text style={styles.cardTitle}>{pet.name}</Text>
@@ -103,8 +128,12 @@ export default function BookingScreen() {
         ))}
 
         {/* PASSO 2: SERVIÇOS */}
-        {step === 2 && services.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.serviceCard} onPress={() => { setAppointment({ ...appointment, service: item }); setStep(3); }}>
+        {step === 2 && (services as any[]).map(item => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.serviceCard}
+            onPress={() => { setAppointment({ ...appointment, service: item }); setStep(3); }}
+          >
             <Image source={{ uri: item.image }} style={styles.serviceImage} />
             <View style={styles.serviceInfo}>
               <Text style={styles.serviceName}>{item.name}</Text>
@@ -114,19 +143,27 @@ export default function BookingScreen() {
           </TouchableOpacity>
         ))}
 
-        {/* PASSO 3: PROFISSIONAL (COM CARGO) */}
-        {step === 3 && professionals.map(pro => (
-          <TouchableOpacity key={pro.id} style={styles.serviceCard} onPress={() => { setAppointment({ ...appointment, professional: pro }); setStep(4); }}>
+        {/* PASSO 3: PROFISSIONAL */}
+        {step === 3 && (professionals as any[]).map(pro => (
+          <TouchableOpacity
+            key={pro.id}
+            style={styles.serviceCard}
+            onPress={() => { setAppointment({ ...appointment, professional: pro }); setStep(4); }}
+          >
             <View style={styles.proImageContainer}>
-              {pro.image ? (
-                <Image source={{ uri: pro.image }} style={styles.fullImg} />
-              ) : (
-                <Ionicons name="person" size={40} color="#FFF" />
-              )}
+              <Ionicons name="person-circle" size={50} color={colors.primary} />
             </View>
             <View style={styles.serviceInfo}>
               <Text style={styles.serviceName}>{pro.name}</Text>
-              <Text style={styles.roleText}>{pro.specialty || pro.role}</Text>
+              {pro.tags && pro.tags.length > 0 && (
+                <View style={styles.tagsContainer}>
+                  {pro.tags.map((tag: string, index: number) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         ))}
@@ -137,14 +174,22 @@ export default function BookingScreen() {
             <Calendar
               minDate={new Date().toISOString().split("T")[0]}
               disabledDaysIndexes={[0]}
-              onDayPress={day => setAppointment({ ...appointment, date: day.dateString })}
-              markedDates={{ [appointment.date]: { selected: true, selectedColor: "#1E9400" } }}
-              theme={{ todayTextColor: "#1E9400", arrowColor: "#1E9400", textMonthFontWeight: "bold" }}
+              onDayPress={(day: any) => setAppointment({ ...appointment, date: day.dateString })}
+              markedDates={{ [appointment.date]: { selected: true, selectedColor: colors.secondary } }}
+              theme={{
+                todayTextColor: colors.secondary,
+                arrowColor: colors.secondary,
+                textMonthFontWeight: "bold",
+              }}
             />
             <Text style={styles.sectionTitle}>Selecione o horário</Text>
             <View style={styles.timeGrid}>
               {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"].map(t => (
-                <TouchableOpacity key={t} style={[styles.timeBtn, appointment.time === t && styles.timeBtnActive]} onPress={() => setAppointment({ ...appointment, time: t })}>
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.timeBtn, appointment.time === t && styles.timeBtnActive]}
+                  onPress={() => setAppointment({ ...appointment, time: t })}
+                >
                   <Text style={[styles.timeText, appointment.time === t && styles.timeTextActive]}>{t}</Text>
                 </TouchableOpacity>
               ))}
@@ -164,18 +209,18 @@ export default function BookingScreen() {
           <View>
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Pet</Text>
-              <Text style={styles.sumValue}>{appointment.pet?.name}</Text>
+              <Text style={styles.sumValue}>{(appointment.pet as any)?.name}</Text>
             </View>
 
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Serviço</Text>
-              <Text style={styles.sumValue}>{appointment.service?.name}</Text>
+              <Text style={styles.sumValue}>{(appointment.service as any)?.name}</Text>
             </View>
 
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Profissional</Text>
               <Text style={styles.sumValue}>
-                {appointment.professional?.name} ({appointment.professional?.specialty || appointment.professional?.role})
+                {(appointment.professional as any)?.name}
               </Text>
             </View>
 
@@ -187,7 +232,7 @@ export default function BookingScreen() {
             <View style={[styles.summaryBox, styles.totalBox]}>
               <Text style={styles.totalLabel}>Valor Total</Text>
               <Text style={styles.totalValue}>
-                R$ {appointment.service?.price ? appointment.service.price.toFixed(2) : "0.00"}
+                R$ {(appointment.service as any)?.price ? (appointment.service as any).price.toFixed(2) : "0.00"}
               </Text>
             </View>
 
@@ -205,265 +250,348 @@ export default function BookingScreen() {
         {/* PASSO 6: SUCESSO */}
         {step === 6 && (
           <View style={styles.successContainer}>
-            <Ionicons name="checkmark-circle" size={100} color="#1E9400" />
+            <Ionicons name="checkmark-circle" size={100} color={colors.secondary} />
             <Text style={styles.successTitle}>Serviço agendado com sucesso!</Text>
             <Text style={styles.successSub}>Você pode acompanhar seus agendamentos na tela inicial.</Text>
-            <TouchableOpacity style={styles.backHomeBtn} onPress={handleCancel}>
-              <Text style={styles.confirmBtnText}>Voltar para o Início</Text>
+            <TouchableOpacity style={styles.backHomeBtn} onPress={() => router.push("/(protected)/(client)/client-agenda")}>
+              <Text style={styles.confirmBtnText}>Ver meus agendamentos</Text>
             </TouchableOpacity>
           </View>
         )}
+
       </ScrollView>
-    </View>
+
+      <ClientMenu />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF"
+    backgroundColor: "#FFF",
   },
+
   header: {
     paddingHorizontal: 20,
-    paddingTop: 50,
-    backgroundColor: "#FFF"
+    paddingTop: 20,
+    backgroundColor: "#FFF",
   },
+
   topRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20
+    marginBottom: 20,
   },
+
   titleWrapper: {
-    marginLeft: 10
+    flex: 1,
   },
+
   mainTitle: {
-    fontSize: 24,
-    fontWeight: "bold"
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 6,
+    marginLeft: 16,
   },
+
   subtitle: {
     fontSize: 14,
-    color: "#666"
+    color: "gray",
+    marginLeft: 16,
+    marginBottom: 16,
   },
+
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20
+    marginBottom: 20,
   },
+
   stepCircle: {
-    width: 34, height: 34,
+    width: 34,
+    height: 34,
     borderRadius: 17,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
+
   activeCircle: {
-    backgroundColor: "#F9A825"
+    backgroundColor: colors.accent,
   },
+
+  pastCircle: {
+    backgroundColor: colors.secondary,
+  },
+
   inactiveCircle: {
-    backgroundColor: "#B2D8D3"
+    backgroundColor: "#B2D8D3",
   },
+
   stepNumberText: {
     color: "#FFF",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
+
   stepLine: {
     width: 20,
     height: 1,
     backgroundColor: "#CCC",
-    marginHorizontal: 8
+    marginHorizontal: 8,
   },
+
   content: {
-    padding: 20
+    padding: 20,
+    paddingBottom: 20,
   },
+
   card: {
     padding: 15,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#fff",
     borderRadius: 12,
     marginBottom: 15,
     flexDirection: "row",
-    alignItems: "center"
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
+
   petImage: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    marginRight: 15
+    marginRight: 15,
   },
+
   cardTitle: {
     fontSize: 18,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
+
   cardSub: {
     fontSize: 14,
-    color: "#666"
+    color: "#666",
   },
+
   serviceCard: {
     flexDirection: "row",
     padding: 15,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#fff",
     borderRadius: 12,
-    marginBottom: 15
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
+
   serviceImage: {
     width: 90,
     height: 90,
     borderRadius: 10,
-    marginRight: 15
-  },
-  proImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: "#54A779",
     marginRight: 15,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center"
   },
+
+  proImageContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "transparent",
+    marginRight: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   fullImg: {
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
+
   serviceInfo: {
     flex: 1,
-    justifyContent: "center"
+    justifyContent: "center",
   },
+
   serviceName: {
-    fontSize: 18,
-    fontWeight: "bold"
-  },
-  roleText: {
-    fontSize: 14,
-    color: "#1E9400",
-    fontWeight: "600",
-    marginTop: 2
-  },
-  serviceDescription: {
-    fontSize: 12,
-    color: "#444"
-  },
-  servicePrice: {
     fontSize: 16,
     fontWeight: "bold",
-    marginTop: 5,
-    color: "#1E9400"
+    color: colors.text,
+    marginBottom: 4,
   },
+
+  serviceDescription: {
+    fontSize: 12,
+    color: "#444",
+  },
+
+  servicePrice: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginTop: 5,
+    color: colors.secondary,
+  },
+
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 4,
+  },
+
+  tag: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+
+  tagText: {
+    fontSize: 11,
+    color: "#fff",
+    fontWeight: "600",
+  },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginVertical: 15
+    marginVertical: 15,
   },
+
   timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
+
   timeBtn: {
     width: "31%",
     padding: 10,
     borderWidth: 1,
-    borderColor: "#1E9400",
+    borderColor: colors.secondary,
     borderRadius: 8,
     alignItems: "center",
-    marginBottom: 10
+    marginBottom: 10,
   },
+
   timeBtnActive: {
-    backgroundColor: "#1E9400"
+    backgroundColor: colors.secondary,
   },
+
   timeText: {
-    color: "#1E9400",
-    fontWeight: "bold"
+    color: colors.secondary,
+    fontWeight: "bold",
   },
+
   timeTextActive: {
-    color: "#FFF"
+    color: "#FFF",
   },
+
   confirmBtn: {
-    backgroundColor: "#1E9400",
+    backgroundColor: colors.secondary,
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 10
+    marginTop: 10,
   },
+
   confirmBtnText: {
     color: "#FFF",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
+
   summaryBox: {
     backgroundColor: "#F5F5F5",
     padding: 15,
     borderRadius: 10,
-    marginBottom: 10
+    marginBottom: 10,
   },
+
   sumLabel: {
     fontSize: 12,
-    color: "#666"
+    color: "#666",
   },
+
   sumValue: {
     fontSize: 16,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
+
   footerBtns: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20
+    marginTop: 20,
   },
+
   cancelAction: {
-    backgroundColor: "#FF5252",
+    backgroundColor: "#E5484D",
     flex: 0.48,
     padding: 15,
     borderRadius: 10,
-    alignItems: "center"
+    alignItems: "center",
   },
+
   confirmAction: {
-    backgroundColor: "#1E9400",
+    backgroundColor: colors.secondary,
     flex: 0.48,
     padding: 15,
     borderRadius: 10,
-    alignItems: "center"
+    alignItems: "center",
   },
+
   successContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 50
+    marginTop: 50,
   },
+
   successTitle: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 20
+    marginTop: 20,
   },
+
   successSub: {
     fontSize: 16,
     color: "#666",
     textAlign: "center",
     marginTop: 10,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
+
   backHomeBtn: {
-    backgroundColor: "#F9A825",
+    backgroundColor: colors.accent,
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 40,
-    width: "100%"
+    width: "100%",
   },
+
   totalBox: {
-    backgroundColor: "#E8F5E9",
+    backgroundColor: "#F0FAF4",
     borderWidth: 1,
-    borderColor: "#1E9400",
+    borderColor: colors.secondary,
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   totalLabel: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
   },
+
   totalValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1E9400",
+    color: colors.secondary,
   },
 });

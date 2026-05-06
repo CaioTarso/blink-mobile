@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { BackIcon } from "@/components/icons/back-icon";
 import { AppointmentsList, Appointment } from "@/components/AppointmentsList";
-import { colors } from "@/styles/colors";
+import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 
 const mockAppointments: Appointment[] = [
   {
@@ -37,7 +35,6 @@ const mockAppointments: Appointment[] = [
 ];
 
 export default function ClientAgenda() {
-  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
 
   const handleCancel = (id: string) => {
@@ -49,13 +46,7 @@ export default function ClientAgenda() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <BackIcon color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Meus Agendamentos</Text>
-        </View>
-
+        <Text style={styles.title}>Meus Agendamentos</Text>
         <Text style={styles.subtitle}>
           Histórico de todos os seus agendamentos
         </Text>
@@ -65,6 +56,8 @@ export default function ClientAgenda() {
           onCancel={handleCancel}
         />
       </View>
+
+      <ClientMenu />
     </SafeAreaView>
   );
 }
@@ -80,23 +73,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    flex: 1,
+    marginBottom: 6,
+    marginLeft: 16,
   },
 
   subtitle: {
     fontSize: 14,
     color: "gray",
     marginBottom: 16,
-    marginLeft: 32,
+    marginLeft: 16,
   },
 });
