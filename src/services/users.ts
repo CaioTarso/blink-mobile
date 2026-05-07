@@ -1,35 +1,37 @@
-// src/services/users.ts
-
-// Dados Base (Todos os usuários do sistema)
 export const initialUsers = [
   {
     id: "1",
     name: "João Silva",
     role: "Admin",
-    specialty: "Veterinário", // Adicionando a função real
+    specialty: "Veterinário",
     email: "joao@email.com",
+    phone: "(85) 99999-0001",
+    tags: ["Banho", "Tosa"],
     active: true,
   },
   {
     id: "2",
     name: "Maria Souza",
     role: "Staff",
-    specialty: "Tosa Especializada", // Adicionando a função real
+    specialty: "Tosa Especializada",
     email: "maria@email.com",
+    phone: "(85) 99999-0002",
+    tags: ["Banho e Tosa"],
     active: true,
   },
   {
     id: "3",
     name: "Carlos Lima",
-    role: "Client", // Cliente não deve aparecer no agendamento como prestador
+    role: "Client",
     email: "carlos@email.com",
-    active: true,
+    phone: "(85) 99999-0003",
+    tags: ["Consulta Veterinária"],
+    active: false,
   },
 ];
 
-// Função para sua tela de agendamento carregar apenas a EQUIPE
+// Retorna apenas Admin e Staff ativos — para tela de agendamento
 export const getProfessionals = async () => {
-  // Filtra apenas quem é Admin ou Staff e está ativo
   return initialUsers.filter(
     (user) => user.active && (user.role === "Admin" || user.role === "Staff")
   );

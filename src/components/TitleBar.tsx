@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 import { colors } from "@/styles/colors";
-import { BackIcon } from "../components/icons/back-icon";
+import { BackIcon } from "@/components/icons/back-icon";
 
 type TitleBarProps = {
   title: string;
@@ -10,12 +10,7 @@ type TitleBarProps = {
   style?: ViewStyle;
 };
 
-export function TitleBar({
-  title,
-  subtitle,
-  onBackPress,
-  style,
-}: TitleBarProps) {
+export function TitleBar({ title, subtitle, onBackPress, style }: TitleBarProps) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.leftWrapper}>
@@ -30,7 +25,6 @@ export function TitleBar({
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
       </View>
-
     </View>
   );
 }
@@ -46,13 +40,13 @@ const styles = StyleSheet.create({
 
   leftWrapper: {
     flexDirection: "row",
-    alignItems: "flex-start", 
+    alignItems: "flex-start",
     flex: 1,
   },
 
   iconWrapper: {
     marginRight: 12,
-    marginTop: 6, 
+    marginTop: 6,
   },
 
   textWrapper: {
@@ -63,12 +57,14 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "700",
     color: "#111827",
-    lineHeight: 36, 
+    lineHeight: 36,
+    marginLeft: 16,
   },
 
   subtitle: {
     fontSize: 16,
     color: "#6b7280",
-    marginTop: 4, 
+    marginTop: 4,
+    marginLeft: 16,
   },
 });

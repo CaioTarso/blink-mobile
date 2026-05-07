@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
-    backgroundColor: "#FB3737",
+    backgroundColor: "#E5484D",
   },
 
   disabled: {

@@ -9,13 +9,12 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
-import { BackIcon } from "@/components/icons/back-icon";
 import { EditIcon } from "@/components/icons/edit-icon";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 
 const mockUser = {
   name: "João Silva",
@@ -27,8 +26,7 @@ const mockUser = {
 };
 
 export default function AdminProfileScreen() {
-  const router = useRouter();
-
+  const { logout } = useAuth();
   const [user, setUser] = useState(mockUser);
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
@@ -61,6 +59,7 @@ export default function AdminProfileScreen() {
 
   const handleLogout = () => {
     setLogoutModalVisible(false);
+    logout();
   };
 
   return (
@@ -88,7 +87,8 @@ export default function AdminProfileScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Sair</Text>
             <Text style={styles.modalMessage}>
-              Tem certeza que deseja <Text style={styles.modalAction}>sair</Text> da sua conta?
+              Tem certeza que deseja{" "}
+              <Text style={styles.modalAction}>sair</Text> da sua conta?
             </Text>
 
             <View style={styles.modalActions}>
@@ -112,10 +112,6 @@ export default function AdminProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.replace("/")}>
-            <BackIcon color="#000" />
-          </TouchableOpacity>
-
           <Text style={styles.headerTitle}>Minha Conta</Text>
 
           <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -183,20 +179,20 @@ const styles = StyleSheet.create({
 
   scroll: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
 
   headerTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
     marginBottom: 24,
   },
 
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    flex: 1,
+    marginLeft: 32,
   },
 
   avatarContainer: {

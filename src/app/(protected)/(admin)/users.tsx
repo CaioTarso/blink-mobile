@@ -9,12 +9,10 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { UserCard } from "@/components/admin/UserCard";
 import { UserFormModal } from "@/components/admin/UserFormModal";
-import { BackIcon } from "@/components/icons/back-icon";
 import { AddIcon } from "@/components/icons/add-icon";
 import { colors } from "@/styles/colors";
 
@@ -57,7 +55,6 @@ type ConfirmTarget = {
 };
 
 export default function UsersScreen() {
-  const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
 
   const [toastMessage, setToastMessage] = useState("");
@@ -157,7 +154,6 @@ export default function UsersScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Toast */}
       {toastMessage ? (
         <Animated.View
           style={[
@@ -170,7 +166,6 @@ export default function UsersScreen() {
         </Animated.View>
       ) : null}
 
-      {/* Modal de confirmação ativar/desativar */}
       <Modal
         visible={!!confirmTarget}
         transparent
@@ -188,7 +183,6 @@ export default function UsersScreen() {
               o usuário{" "}
               <Text style={styles.modalName}>{confirmTarget?.name}</Text>?
             </Text>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
@@ -196,7 +190,6 @@ export default function UsersScreen() {
               >
                 <Text style={styles.confirmText}>Sim</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={handleCancel}
@@ -208,7 +201,6 @@ export default function UsersScreen() {
         </View>
       </Modal>
 
-      {/* Modal de confirmação excluir */}
       <Modal
         visible={!!deleteTarget}
         transparent
@@ -224,7 +216,6 @@ export default function UsersScreen() {
               o usuário{" "}
               <Text style={styles.modalName}>{deleteTarget?.name}</Text>?
             </Text>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
@@ -232,7 +223,6 @@ export default function UsersScreen() {
               >
                 <Text style={styles.confirmText}>Sim</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={handleCancelDelete}
@@ -244,7 +234,6 @@ export default function UsersScreen() {
         </View>
       </Modal>
 
-      {/* Modal de formulário */}
       <UserFormModal
         visible={formModalVisible}
         onClose={() => setFormModalVisible(false)}
@@ -253,15 +242,7 @@ export default function UsersScreen() {
       />
 
       <View style={styles.content}>
-        {/* Header */}
         <View style={styles.headerTop}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.push("/(protected)/(admin)")}
-          >
-            <BackIcon color="#000" />
-          </TouchableOpacity>
-
           <Text style={styles.title}>Equipe</Text>
 
           <TouchableOpacity style={styles.addButton} onPress={handleOpenAdd}>
@@ -313,19 +294,14 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-
-  backButton: {
+    justifyContent: "space-between",
     marginBottom: 10,
   },
 
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 10,
-    flex: 1,
+    marginLeft: 16,
   },
 
   addButton: {
@@ -336,7 +312,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
-    marginBottom: 10,
   },
 
   addButtonText: {
@@ -348,8 +323,8 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     marginBottom: 15,
-    marginLeft: 32,
     color: "gray",
+    marginLeft: 16,
   },
 
   listContent: {
@@ -371,7 +346,7 @@ const styles = StyleSheet.create({
   },
 
   toastInactive: {
-    backgroundColor: "#FB3737",
+    backgroundColor: "#E5484D",
   },
 
   toastText: {
