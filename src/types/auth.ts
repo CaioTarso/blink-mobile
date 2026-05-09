@@ -2,6 +2,9 @@ export type UserRole = "admin" | "client" | "staff";
 
 export type User = {
   id: string;
+  client_id?: string | null;
+  staff_id?: string | null;
+  admin_id?: string | null;
   name: string;
   email: string;
   phone?: string;

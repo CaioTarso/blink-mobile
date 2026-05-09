@@ -1,6 +1,9 @@
+import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { getServices } from "@/services/services";
 import { getProfessionals } from "@/services/users";
+import { colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -10,11 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { ClientMenu } from "@/components/client/navigation/ClientMenu";
-import { colors } from "@/styles/colors";
-import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 LocaleConfig.locales["pt-br"] = {
   monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
@@ -34,10 +34,20 @@ const MOCK_PETS = [
 export default function BookingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState([]);
-  const [professionals, setProfessionals] = useState([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [professionals, setProfessionals] = useState<any[]>([]);
 
-  const initialState = {
+  type BookingPet = (typeof MOCK_PETS)[number];
+
+  type AppointmentState = {
+    pet: BookingPet | null;
+    service: any | null;
+    professional: any | null;
+    date: string;
+    time: string | null;
+  };
+
+  const initialState: AppointmentState = {
     pet: null,
     service: null,
     professional: null,
@@ -45,8 +55,7 @@ export default function BookingScreen() {
     time: null,
   };
 
-  const [appointment, setAppointment] = useState(initialState);
-
+  const [appointment, setAppointment] = useState<AppointmentState>(initialState);
   useEffect(() => {
     getServices().then(setServices);
     getProfessionals()
