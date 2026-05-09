@@ -60,7 +60,15 @@ const emptyForm: UserFormData = {
 
 export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoading = false }: Props) {
   const [form, setForm] = useState<UserFormData>(emptyForm);
+  const [error, setError] = useState("");
   const isEditing = !!editingUser;
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 2) return digits.length ? `(${digits}` : "";
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
 
   useEffect(() => {
     if (editingUser) {
@@ -79,6 +87,7 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoadi
     } else {
       setForm(emptyForm);
     }
+    setError("");
   }, [editingUser, visible]);
 
   const toggleTag = (tag: string) => {
@@ -92,6 +101,19 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoadi
   };
 
   const handleSubmit = () => {
+    setError("");
+
+    if (!form.name || !form.email || !form.phone || !form.position) {
+      setError("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    const phoneDigits = form.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      setError("Informe um telefone válido com DDD. Ex: (11) 99999-1234");
+      return;
+    }
+
     const finalTags = form.tags.includes("Outro") && form.customTag.trim()
       ? [...form.tags.filter((t) => t !== "Outro"), form.customTag.trim()]
       : form.tags.filter((t) => t !== "Outro");
@@ -140,8 +162,9 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoadi
               placeholder="(00) 00000-0000"
               keyboardType="phone-pad"
               value={form.phone}
-              onChangeText={(v) => setForm((p) => ({ ...p, phone: v }))}
+              onChangeText={(v) => setForm((p) => ({ ...p, phone: formatPhone(v) }))}
               editable={!isLoading}
+              maxLength={15}
             />
 
             <Input
@@ -183,6 +206,8 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoadi
               />
             )}
           </ScrollView>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <View style={styles.actions}>
             <TouchableOpacity 
@@ -237,6 +262,13 @@ const styles = StyleSheet.create({
   scroll: {
     alignItems: "center",
     paddingBottom: 8,
+  },
+
+  errorText: {
+    color: "#E5484D",
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 4,
   },
 
   label: {
