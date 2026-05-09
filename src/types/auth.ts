@@ -6,7 +6,20 @@ export type User = {
   email: string;
   phone?: string;
   address?: string;
+  birthdate?: string;
+  cpf?: string;
   role?: UserRole;
+};
+
+export type UpdateProfileRequest = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  birthdate?: string;
+  cpf?: string;
+  password?: string;
+  password_confirmation?: string;
 };
 
 export type LoginRequest = {

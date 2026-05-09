@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Animated,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,23 +17,26 @@ import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { colors } from "@/styles/colors";
 import { useAuth } from "@/context/AuthContext";
 
-const mockUser = {
-  name: "João Silva",
-  email: "joao@email.com",
-  phone: "(85) 99999-0001",
-  birthdate: "10/01/1985",
-  cpf: "987.654.321-00",
-  address: "Rua das Palmeiras, 456 - Fortaleza, CE",
-};
-
 export default function AdminProfileScreen() {
-  const { logout } = useAuth();
-  const [user, setUser] = useState(mockUser);
+  const { user, logout, fetchUser, updateUser, isLoading } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const [toastMessage, setToastMessage] = useState("");
   const [toastOpacity] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const profileData = {
+    name: user?.name ?? "",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
+    birthdate: user?.birthdate ?? "",
+    cpf: user?.cpf ?? "",
+    address: user?.address ?? "",
+  };
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -51,10 +55,14 @@ export default function AdminProfileScreen() {
     });
   };
 
-  const handleSave = (data: typeof mockUser) => {
-    setUser((prev) => ({ ...prev, ...data }));
-    setModalVisible(false);
-    showToast("Alterações salvas com sucesso!");
+  const handleSave = async (data: typeof profileData) => {
+    try {
+      await updateUser(data);
+      setModalVisible(false);
+      showToast("Alterações salvas com sucesso!");
+    } catch {
+      showToast("Erro ao salvar alterações.");
+    }
   };
 
   const handleLogout = () => {
@@ -74,7 +82,7 @@ export default function AdminProfileScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSubmit={handleSave}
-        user={user}
+        user={profileData}
       />
 
       <Modal
@@ -122,11 +130,11 @@ export default function AdminProfileScreen() {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarInitial}>
-              {user.name.charAt(0).toUpperCase()}
+              {profileData.name ? profileData.name.charAt(0).toUpperCase() : "?"}
             </Text>
           </View>
 
-          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userName}>{profileData.name}</Text>
 
           <View style={styles.roleBadge}>
             <Text style={styles.roleText}>Admin</Text>
@@ -134,12 +142,12 @@ export default function AdminProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Field label="Nome completo" value={user.name} />
-          <Field label="Email" value={user.email} />
-          <Field label="Telefone" value={user.phone} />
-          <Field label="Data de nascimento" value={user.birthdate} />
-          <Field label="CPF" value={user.cpf} />
-          <Field label="Endereço" value={user.address} />
+          <Field label="Nome completo" value={profileData.name} />
+          <Field label="Email" value={profileData.email} />
+          <Field label="Telefone" value={profileData.phone} />
+          <Field label="Data de nascimento" value={profileData.birthdate} />
+          <Field label="CPF" value={profileData.cpf} />
+          <Field label="Endereço" value={profileData.address} />
         </View>
 
         <TouchableOpacity

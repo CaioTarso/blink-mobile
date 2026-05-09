@@ -5,6 +5,8 @@ import {
   RegisterRequest,
   RegisterStaffRequest,
   RegisterStaffResponse,
+  User,
+  UpdateProfileRequest,
 } from "../types";
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -20,6 +22,16 @@ export async function register(payload: RegisterRequest) {
 
 export async function registerStaff(data: RegisterStaffRequest): Promise<RegisterStaffResponse> {
   const response = await api.post<RegisterStaffResponse>("/api/admin/staff", data);
+  return response.data;
+}
+
+export async function getMe(): Promise<User> {
+  const response = await api.get<User>("/api/auth/me");
+  return response.data;
+}
+
+export async function updateMe(data: UpdateProfileRequest): Promise<User> {
+  const response = await api.put<User>("/api/auth/me", data);
   return response.data;
 }
 

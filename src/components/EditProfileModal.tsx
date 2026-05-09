@@ -70,8 +70,6 @@ export function EditProfileModal({ visible, onClose, onSubmit, user }: Props) {
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
     if (!form.email.trim()) newErrors.email = "Email é obrigatório";
     if (!form.phone.trim()) newErrors.phone = "Telefone é obrigatório";
-    if (!form.birthdate.trim()) newErrors.birthdate = "Data de nascimento é obrigatória";
-    if (!form.cpf.trim()) newErrors.cpf = "CPF é obrigatório";
     if (!form.address.trim()) newErrors.address = "Endereço é obrigatório";
 
     if (form.password && form.password !== form.confirmPassword) {

@@ -1,7 +1,15 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import { login as authLogin, register as authRegister, recoverPassword as authRecover, logout as authLogout } from "@/services/auth";
-import { User, RegisterRequest } from "@/types";
+import {
+  login as authLogin,
+  register as authRegister,
+  recoverPassword as authRecover,
+  logout as authLogout,
+  getMe,
+  updateMe,
+} from "@/services/auth";
+import { User, RegisterRequest, UpdateProfileRequest } from "@/types";
+import { api } from "@/services/api";
 
 interface AuthContextData {
   user: User | null;
@@ -11,6 +19,8 @@ interface AuthContextData {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   recoverPassword: (email: string) => Promise<void>;
+  fetchUser: () => Promise<void>;
+  updateUser: (data: UpdateProfileRequest) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -20,6 +30,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const savedToken = api.getToken();
+    if (savedToken && !user) {
+      setToken(savedToken);
+      fetchUser().catch(() => {
+        api.clearToken();
+        setToken(null);
+      });
+    }
+  }, []);
 
   function redirectByRole(role: User["role"]) {
     switch (role) {
@@ -73,9 +94,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function fetchUser() {
+    setIsLoading(true);
+    try {
+      const userData = await getMe();
+      setUser(userData);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function updateUser(data: UpdateProfileRequest) {
+    setIsLoading(true);
+    try {
+      const updatedUser = await updateMe(data);
+      setUser(updatedUser);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, login, register, logout, recoverPassword }}
+      value={{ user, token, isLoading, login, register, logout, recoverPassword, fetchUser, updateUser }}
     >
       {children}
     </AuthContext.Provider>
@@ -87,3 +128,4 @@ export function useAuth() {
   if (!context) throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 }
+
