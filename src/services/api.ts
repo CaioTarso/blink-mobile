@@ -10,7 +10,6 @@ class ApiClient {
   private token: string | null = null;
 
   constructor() {
-    // Restaura token do storage ao inicializar
     this.restoreToken();
 
     this.instance = axios.create({
@@ -21,7 +20,6 @@ class ApiClient {
       },
     });
 
-    // Interceptador para log de requisições (debug)
     this.instance.interceptors.request.use((config) => {
       if (this.token) {
         config.headers.Authorization = `Bearer ${this.token}`;
@@ -30,16 +28,14 @@ class ApiClient {
       return config;
     });
 
-    // Interceptador para tratar erros
     this.instance.interceptors.response.use(
       (response) => {
         console.log(`[API] Response ${response.status}:`, response.data);
         return response;
       },
       (error: AxiosError) => {
-        console.error(`[API] Error:`, error.message, error.response?.data);
+        console.warn(`[API] Error:`, error.message, error.response?.data);
         if (error.response?.status === 401) {
-          // Token expirado ou inválido
           this.clearToken();
         }
         return Promise.reject(error);

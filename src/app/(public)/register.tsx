@@ -7,12 +7,12 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
 import { useAuth } from "@/context/AuthContext";
+import { getReadableErrorMessage } from "@/utils/errorMessages";
 
 export default function Signup() {
   const router = useRouter();
@@ -23,15 +23,35 @@ export default function Signup() {
   const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [error, setError] = useState("");
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 2) return digits.length ? `(${digits}` : "";
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+
+  function handlePhoneChange(value: string) {
+    setPhone(formatPhone(value));
+  }
 
   async function handleRegister() {
+    setError("");
+
     if (!name || !email || !phone || !address || !password || !passwordConfirmation) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
+      setError("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      setError("Informe um telefone válido com DDD. Ex: (11) 99999-1234");
       return;
     }
 
     if (password !== passwordConfirmation) {
-      Alert.alert("Erro", "As senhas não conferem");
+      setError("As senhas não coincidem. Verifique e tente novamente.");
       return;
     }
 
@@ -44,8 +64,8 @@ export default function Signup() {
         phone,
         address,
       });
-    } catch (error: any) {
-      Alert.alert("Erro no cadastro", error.message || "Falha ao registrar");
+    } catch (err: unknown) {
+      setError(getReadableErrorMessage(err, "Não foi possível concluir o cadastro. Tente novamente."));
     }
   }
 
@@ -89,8 +109,9 @@ export default function Signup() {
           placeholder="(XX) XXXXX-XXXX"
           keyboardType="phone-pad"
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={handlePhoneChange}
           editable={!isLoading}
+          maxLength={15}
         />
 
         <Input
@@ -118,6 +139,8 @@ export default function Signup() {
           isPassword
           editable={!isLoading}
         />
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <TouchableOpacity
           style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -174,6 +197,14 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
+  errorText: {
+    color: "#E5484D",
+    fontSize: 13,
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+
   button: {
     width: "100%",
     backgroundColor: colors.secondary,
@@ -206,3 +237,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
