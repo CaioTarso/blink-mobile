@@ -5,19 +5,52 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Signup() {
   const router = useRouter();
+  const { register: registerUser, isLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+
+  async function handleRegister() {
+    if (!name || !email || !phone || !address || !password || !passwordConfirmation) {
+      Alert.alert("Erro", "Por favor, preencha todos os campos");
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      Alert.alert("Erro", "As senhas não conferem");
+      return;
+    }
+
+    try {
+      await registerUser({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+        phone,
+        address,
+      });
+    } catch (error: any) {
+      Alert.alert("Erro no cadastro", error.message || "Falha ao registrar");
+    }
+  }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       <Image
         source={require("../../../assets/images/logo/logo-black.png")}
         style={styles.logo}
@@ -38,6 +71,7 @@ export default function Signup() {
           placeholder="Digite seu nome"
           value={name}
           onChangeText={setName}
+          editable={!isLoading}
         />
 
         <Input
@@ -47,6 +81,24 @@ export default function Signup() {
           autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
+          editable={!isLoading}
+        />
+
+        <Input
+          label="Telefone"
+          placeholder="(XX) XXXXX-XXXX"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
+          editable={!isLoading}
+        />
+
+        <Input
+          label="Endereço"
+          placeholder="Rua, número, bairro"
+          value={address}
+          onChangeText={setAddress}
+          editable={!isLoading}
         />
 
         <Input
@@ -55,25 +107,37 @@ export default function Signup() {
           value={password}
           onChangeText={setPassword}
           isPassword
+          editable={!isLoading}
+        />
+
+        <Input
+          label="Confirmar Senha"
+          placeholder="Confirme sua senha"
+          value={passwordConfirmation}
+          onChangeText={setPasswordConfirmation}
+          isPassword
+          editable={!isLoading}
         />
 
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            // TODO: conectar com services/auth.ts
-            console.log("register:", name, email, password);
-          }}
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={isLoading}
         >
-          <Text style={styles.buttonText}>Cadastrar</Text>
+          {isLoading ? (
+            <ActivityIndicator color={colors.surface} />
+          ) : (
+            <Text style={styles.buttonText}>Cadastrar</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/login")}>
+        <TouchableOpacity onPress={() => router.push("/login")} disabled={isLoading}>
           <Text style={styles.linkText}>
             Já tem uma conta? <Text style={styles.link}>Entrar</Text>
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -117,6 +181,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
     marginTop: 10,
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
   },
 
   buttonText: {

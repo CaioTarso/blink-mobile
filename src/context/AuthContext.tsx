@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState } from "react";
 import { useRouter } from "expo-router";
-import { login as authLogin, recoverPassword as authRecover, User } from "@/services/auth";
+import { login as authLogin, register as authRegister, recoverPassword as authRecover, logout as authLogout } from "@/services/auth";
+import { User, RegisterRequest } from "@/types";
 
 interface AuthContextData {
   user: User | null;
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   recoverPassword: (email: string) => Promise<void>;
 }
@@ -36,16 +38,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, password: string) {
     setIsLoading(true);
     try {
-      const response = await authLogin(email, password);
+      const response = await authLogin({ email, password });
       setUser(response.user);
-      setToken(response.token);
+      setToken(response.access_token);
       redirectByRole(response.user.role);
     } finally {
       setIsLoading(false);
     }
   }
 
+  async function register(data: RegisterRequest) {
+    setIsLoading(true);
+    try {
+      await authRegister(data);
+      router.replace("/login");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   function logout() {
+    authLogout();
     setUser(null);
     setToken(null);
     router.replace("/welcome");
@@ -62,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, login, logout, recoverPassword }}
+      value={{ user, token, isLoading, login, register, logout, recoverPassword }}
     >
       {children}
     </AuthContext.Provider>

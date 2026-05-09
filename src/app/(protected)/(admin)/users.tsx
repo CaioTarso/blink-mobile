@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
+  Alert,
   Animated,
+  FlatList,
   Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -14,7 +15,7 @@ import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { UserCard } from "@/components/admin/UserCard";
 import { UserFormModal } from "@/components/admin/UserFormModal";
 import { AddIcon } from "@/components/icons/add-icon";
-import { colors } from "@/styles/colors";
+import { registerStaff } from "@/services/auth";
 
 const initialUsers = [
   {
@@ -65,6 +66,7 @@ export default function UsersScreen() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const showToast = (message: string, success: boolean = true) => {
     setToastMessage(message);
@@ -126,7 +128,7 @@ export default function UsersScreen() {
     setFormModalVisible(true);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = async (data: any) => {
     if (editingUser) {
       setUsers((prev) =>
         prev.map((u) =>
@@ -136,20 +138,44 @@ export default function UsersScreen() {
         )
       );
       showToast("Usuário atualizado com sucesso!", true);
+      setFormModalVisible(false);
     } else {
-      const newUser: User = {
-        id: String(Date.now()),
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        tags: data.tags,
-        role: "Staff",
-        active: true,
-      };
-      setUsers((prev) => [...prev, newUser]);
-      showToast("Usuário adicionado com sucesso!", true);
+      setIsLoading(true);
+      try {
+        const { staff, generated_credentials } = await registerStaff({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          position: data.position,
+          hired_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        });
+
+        const newUser: User = {
+          id: staff.id,
+          name: staff.name,
+          email: staff.email,
+          phone: data.phone,
+          tags: data.tags,
+          role: "Staff",
+          active: true,
+        };
+        setUsers((prev) => [...prev, newUser]);
+        setFormModalVisible(false);
+        Alert.alert(
+          "Staff criado com sucesso!",
+          `Credenciais geradas:\nEmail: ${generated_credentials.email}\nSenha: ${generated_credentials.password}`
+        );
+        showToast("Membro da equipe adicionado com sucesso!", true);
+      } catch (error: any) {
+        showToast(
+          error.response?.data?.message || "Erro ao adicionar staff",
+          false
+        );
+        Alert.alert("Erro", error.message || "Falha ao criar staff");
+      } finally {
+        setIsLoading(false);
+      }
     }
-    setFormModalVisible(false);
   };
 
   return (
@@ -239,6 +265,7 @@ export default function UsersScreen() {
         onClose={() => setFormModalVisible(false)}
         onSubmit={handleFormSubmit}
         editingUser={editingUser}
+        isLoading={isLoading}
       />
 
       <View style={styles.content}>

@@ -56,6 +56,7 @@ export default function Welcome() {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
+            editable={!isLoading}
           />
 
           <Input
@@ -64,6 +65,7 @@ export default function Welcome() {
             value={password}
             onChangeText={setPassword}
             isPassword
+            editable={!isLoading}
           />
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}

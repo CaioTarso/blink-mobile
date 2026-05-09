@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Input } from "@/components/Input";
 import { colors } from "@/styles/colors";
@@ -26,8 +27,7 @@ type UserFormData = {
   name: string;
   email: string;
   phone: string;
-  password: string;
-  confirmPassword: string;
+  position: string;
   tags: string[];
   customTag: string;
   role: string;
@@ -45,20 +45,20 @@ type Props = {
     tags: string[];
     role: string;
   } | null;
+  isLoading?: boolean;
 };
 
 const emptyForm: UserFormData = {
   name: "",
   email: "",
   phone: "",
-  password: "",
-  confirmPassword: "",
+  position: "",
   tags: [],
   customTag: "",
   role: "",
 };
 
-export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props) {
+export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoading = false }: Props) {
   const [form, setForm] = useState<UserFormData>(emptyForm);
   const isEditing = !!editingUser;
 
@@ -122,6 +122,7 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props
               placeholder="Nome completo"
               value={form.name}
               onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
+              editable={!isLoading}
             />
 
             <Input
@@ -131,6 +132,7 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props
               autoCapitalize="none"
               value={form.email}
               onChangeText={(v) => setForm((p) => ({ ...p, email: v }))}
+              editable={!isLoading}
             />
 
             <Input
@@ -139,26 +141,20 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props
               keyboardType="phone-pad"
               value={form.phone}
               onChangeText={(v) => setForm((p) => ({ ...p, phone: v }))}
+              editable={!isLoading}
             />
 
-            {!isEditing && (
-              <>
-                <Input
-                  label="Senha"
-                  placeholder="Senha provisória"
-                  secureTextEntry
-                  value={form.password}
-                  onChangeText={(v) => setForm((p) => ({ ...p, password: v }))}
-                />
-                <Input
-                  label="Confirmar Senha"
-                  placeholder="Repita a senha"
-                  secureTextEntry
-                  value={form.confirmPassword}
-                  onChangeText={(v) => setForm((p) => ({ ...p, confirmPassword: v }))}
-                />
-              </>
-            )}
+            <Input
+              label="Cargo"
+              placeholder="Ex: Veterinário, Tosador"
+              value={form.position}
+              onChangeText={(v) => setForm((p) => ({ ...p, position: v }))}
+              editable={!isLoading}
+            />
+
+            <Text style={styles.infoText}>
+              A senha do staff será gerada automaticamente usando o primeiro nome e os últimos 4 dígitos do celular.
+            </Text>
 
             <Text style={styles.label}>Especialidades</Text>
             <View style={styles.tagsGrid}>
@@ -189,12 +185,24 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser }: Props
           </ScrollView>
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <TouchableOpacity 
+              style={styles.cancelButton} 
+              onPress={onClose}
+              disabled={isLoading}
+            >
               <Text style={styles.cancelText}>Cancelar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitText}>{submitLabel}</Text>
+            <TouchableOpacity 
+              style={[styles.submitButton, isLoading && styles.submitButtonDisabled]} 
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>{submitLabel}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -238,6 +246,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: colors.primary,
+  },
+
+  infoText: {
+    width: "90%",
+    color: "#666",
+    fontSize: 13,
+    marginBottom: 16,
+    lineHeight: 18,
   },
 
   tagsGrid: {
@@ -300,6 +316,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#54A779",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
 
   submitText: {
