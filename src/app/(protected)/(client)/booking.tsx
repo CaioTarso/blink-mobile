@@ -1,8 +1,12 @@
+import { createAppointment } from "@/services/appointments";
+import { getMyPets, Pet } from "@/services/pets";
 import { getServices } from "@/services/services";
 import { getProfessionals } from "@/services/users";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -24,18 +28,13 @@ LocaleConfig.locales["pt-br"] = {
 };
 LocaleConfig.defaultLocale = "pt-br";
 
-const MOCK_PETS = [
-  { id: "1", name: "Rex", breed: "Golden Retriever", weight: "10 kg", image: "https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg" },
-  { id: "2", name: "Mimi", breed: "Siamês", weight: "5 kg", image: "https://img.freepik.com/psd-gratuitas/belo-retrato-de-gato-isolado_23-2150186058.jpg?semt=ais_hybrid&w=740&q=80" },
-  { id: "3", name: "Lyon", breed: "Pit bull", weight: "25 kg", image: "https://img.freepik.com/fotos-gratis/um-cao-lindo-a-ouvir-e-a-olhar-para-cima_23-2149448210.jpg?semt=ais_hybrid&w=740&q=80" },
-  { id: "4", name: "Banguela", breed: "Bombay", weight: "4 kg", image: "https://img.freepik.com/fotos-gratis/gato-preto-com-olhos-verdes-descansando-em-uma-grama_181624-30967.jpg?semt=ais_hybrid&w=740&q=80" },
-];
-
 export default function BookingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
   const [professionals, setProfessionals] = useState([]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [petsLoading, setPetsLoading] = useState(true);
 
   const initialState = {
     pet: null,
@@ -46,17 +45,52 @@ export default function BookingScreen() {
   };
 
   const [appointment, setAppointment] = useState(initialState);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     getServices().then(setServices);
     getProfessionals()
       .then(setProfessionals)
       .catch(() => console.log("Erro ao carregar profissionais"));
+    getMyPets()
+      .then(setPets)
+      .catch(() => console.log("Erro ao carregar pets"))
+      .finally(() => setPetsLoading(false));
   }, []);
 
   const handleCancel = () => {
     setAppointment(initialState);
     setStep(1);
+  };
+
+  const handleConfirm = async () => {
+    const pet = appointment.pet as any;
+    const service = appointment.service as any;
+    const professional = appointment.professional as any;
+
+    if (!pet || !service || !professional || !appointment.date || !appointment.time) {
+      Alert.alert("Atenção", "Preencha todas as etapas antes de confirmar.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await createAppointment({
+        pet_id: String(pet.id),
+        service_id: String(service.id),
+        professional_id: String(professional.id),
+        date: appointment.date,
+        time: appointment.time,
+      });
+      setStep(6);
+    } catch (e) {
+      Alert.alert(
+        "Erro",
+        "Não foi possível concluir o agendamento. Tente novamente."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderStepper = () =>
@@ -113,11 +147,19 @@ export default function BookingScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* PASSO 1: PETS */}
-        {step === 1 && MOCK_PETS.map(pet => (
+        {step === 1 && petsLoading && (
+          <ActivityIndicator size="large" color={colors.secondary} style={{ marginTop: 30 }} />
+        )}
+        {step === 1 && !petsLoading && pets.length === 0 && (
+          <Text style={{ textAlign: "center", color: "#666", marginTop: 30 }}>
+            Você ainda não tem pets cadastrados.
+          </Text>
+        )}
+        {step === 1 && !petsLoading && pets.map(pet => (
           <TouchableOpacity
             key={pet.id}
             style={styles.card}
-            onPress={() => { setAppointment({ ...appointment, pet }); setStep(2); }}
+            onPress={() => { setAppointment({ ...appointment, pet: pet as any }); setStep(2); }}
           >
             <Image source={{ uri: pet.image }} style={styles.petImage} />
             <View>
@@ -237,11 +279,23 @@ export default function BookingScreen() {
             </View>
 
             <View style={styles.footerBtns}>
-              <TouchableOpacity style={styles.cancelAction} onPress={handleCancel}>
+              <TouchableOpacity
+                style={styles.cancelAction}
+                onPress={handleCancel}
+                disabled={submitting}
+              >
                 <Text style={styles.confirmBtnText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmAction} onPress={() => setStep(6)}>
-                <Text style={styles.confirmBtnText}>Confirmar</Text>
+              <TouchableOpacity
+                style={[styles.confirmAction, submitting && { opacity: 0.7 }]}
+                onPress={handleConfirm}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.confirmBtnText}>Confirmar</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

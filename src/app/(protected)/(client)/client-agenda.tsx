@@ -1,45 +1,90 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppointmentsList, Appointment } from "@/components/AppointmentsList";
 import { ClientMenu } from "@/components/client/navigation/ClientMenu";
-
-const mockAppointments: Appointment[] = [
-  {
-    id: "1",
-    date: "26/03/26",
-    time: "08:00",
-    service: "Banho",
-    petName: "Maria Joaquina",
-    professional: "João Silva",
-    status: "agendado",
-  },
-  {
-    id: "2",
-    date: "27/03/26",
-    time: "10:00",
-    service: "Tosa",
-    petName: "Bolinha",
-    professional: "Maria Souza",
-    status: "concluído",
-  },
-  {
-    id: "3",
-    date: "28/03/26",
-    time: "14:00",
-    service: "Consulta Veterinária",
-    petName: "Rex",
-    professional: "João Silva",
-    status: "cancelado",
-  },
-];
+import {
+  cancelAppointment,
+  listMyAppointments,
+} from "@/services/appointments";
+import { colors } from "@/styles/colors";
 
 export default function ClientAgenda() {
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCancel = (id: string) => {
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await listMyAppointments();
+      setAppointments(data);
+    } catch (e) {
+      setError("Não foi possível carregar seus agendamentos.");
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      await load();
+      setLoading(false);
+    })();
+  }, [load]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+
+  const handleCancel = async (id: string) => {
+    const previous = appointments;
     setAppointments((prev) =>
-      prev.map((apt) => apt.id === id ? { ...apt, status: "cancelado" } : apt)
+      prev.map((apt) => (apt.id === id ? { ...apt, status: "cancelado" } : apt))
+    );
+    try {
+      await cancelAppointment(id);
+    } catch (e) {
+      setAppointments(previous);
+      setError("Não foi possível cancelar o agendamento.");
+    }
+  };
+
+  const renderBody = () => {
+    if (loading) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.secondary} />
+        </View>
+      );
+    }
+
+    if (error && appointments.length === 0) {
+      return (
+        <ScrollView
+          contentContainerStyle={styles.centered}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
+          <Text style={styles.errorText}>{error}</Text>
+        </ScrollView>
+      );
+    }
+
+    return (
+      <AppointmentsList
+        appointments={appointments}
+        onCancel={handleCancel}
+      />
     );
   };
 
@@ -51,10 +96,7 @@ export default function ClientAgenda() {
           Histórico de todos os seus agendamentos
         </Text>
 
-        <AppointmentsList
-          appointments={appointments}
-          onCancel={handleCancel}
-        />
+        {renderBody()}
       </View>
 
       <ClientMenu />
@@ -86,4 +128,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginLeft: 16,
   },
+
+  centered: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+
+  errorText: {
+    color: "#E5484D",
+    textAlign: "center",
+    fontSize: 14,
+  },
 });
+
