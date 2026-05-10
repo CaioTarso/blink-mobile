@@ -16,6 +16,14 @@ import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
 
+type AppointmentDraft = {
+  pet: any;
+  service: any;
+  professional: any;
+  date: string;
+  time: string | null;
+};
+
 LocaleConfig.locales["pt-br"] = {
   monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
   monthNamesShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
@@ -34,10 +42,10 @@ const MOCK_PETS = [
 export default function BookingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState([]);
-  const [professionals, setProfessionals] = useState([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [professionals, setProfessionals] = useState<any[]>([]);
 
-  const initialState = {
+  const initialState: AppointmentDraft = {
     pet: null,
     service: null,
     professional: null,
@@ -45,7 +53,7 @@ export default function BookingScreen() {
     time: null,
   };
 
-  const [appointment, setAppointment] = useState(initialState);
+  const [appointment, setAppointment] = useState<AppointmentDraft>(initialState);
 
   useEffect(() => {
     getServices().then(setServices);
