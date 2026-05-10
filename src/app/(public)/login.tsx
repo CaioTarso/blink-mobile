@@ -11,6 +11,7 @@ import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/Input";
 import { useAuth } from "@/context/AuthContext";
+import { getReadableErrorMessage } from "@/utils/errorMessages";
 
 export default function Welcome() {
   const router = useRouter();
@@ -23,8 +24,8 @@ export default function Welcome() {
     setError("");
     try {
       await login(email, password);
-    } catch (e: any) {
-      setError(e.message || "Erro ao fazer login");
+    } catch (e: unknown) {
+      setError(getReadableErrorMessage(e, "Erro ao fazer login. Tente novamente."));
     }
   };
 
@@ -56,6 +57,7 @@ export default function Welcome() {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
+            editable={!isLoading}
           />
 
           <Input
@@ -64,6 +66,7 @@ export default function Welcome() {
             value={password}
             onChangeText={setPassword}
             isPassword
+            editable={!isLoading}
           />
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
