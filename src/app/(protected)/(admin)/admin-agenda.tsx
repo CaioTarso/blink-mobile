@@ -1,61 +1,149 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { AppointmentsList, Appointment } from "@/components/AppointmentsList";
+import {
+  Appointment as ListAppointment,
+  AppointmentsList,
+} from "@/components/AppointmentsList";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
+import {
+  Appointment as ApiAppointment,
+  AppointmentStatus,
+  deleteAppointment,
+  getAppointments,
+  updateAppointment,
+} from "@/services/appointments";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const mockAppointments: Appointment[] = [
-  {
-    id: "1",
-    date: "26/03/26",
-    time: "08:00",
-    service: "Banho",
-    petName: "Maria Joaquina",
-    clientName: "Ana Paula",
-    professional: "João Silva",
-    status: "agendado",
-  },
-  {
-    id: "2",
-    date: "27/03/26",
-    time: "10:00",
-    service: "Tosa",
-    petName: "Bolinha",
-    clientName: "Carlos Lima",
-    professional: "Maria Souza",
-    status: "concluído",
-  },
-  {
-    id: "3",
-    date: "28/03/26",
-    time: "14:00",
-    service: "Consulta Veterinária",
-    petName: "Rex",
-    clientName: "Pedro Alves",
-    professional: "João Silva",
-    status: "cancelado",
-  },
-];
+function formatDate(value?: string | null) {
+  if (!value) return "--/--/--";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "--/--/--";
+  }
+
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  });
+}
+
+function formatTime(value?: string | null) {
+  if (!value) return "--:--";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "--:--";
+  }
+
+  return date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getRelationName(
+  relation?: { name?: string; full_name?: string } | null
+) {
+  return relation?.name || relation?.full_name || "Não informado";
+}
+
+function mapStatusToListStatus(
+  status: AppointmentStatus
+): ListAppointment["status"] {
+  const statusMap: Record<AppointmentStatus, ListAppointment["status"]> = {
+    pending: "agendado",
+    confirmed: "agendado",
+    completed: "concluído",
+    cancelled: "cancelado",
+    no_show: "não_comparecimento",
+  };
+
+  return statusMap[status];
+}
+
+function mapApiAppointmentToListAppointment(
+  appointment: ApiAppointment
+): ListAppointment {
+  return {
+    id: appointment.id,
+    date: formatDate(appointment.scheduled_date || appointment.start_time),
+    time: formatTime(appointment.start_time),
+    service: "Serviço não informado",
+    petName: getRelationName(appointment.pet),
+    clientName: getRelationName(appointment.client),
+    professional: getRelationName(appointment.staff),
+    status: mapStatusToListStatus(appointment.status),
+  };
+}
 
 export default function AdminAgenda() {
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [appointments, setAppointments] = useState<ListAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadAppointments = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getAppointments();
+      setAppointments(data.map(mapApiAppointmentToListAppointment));
+    } catch (err) {
+      console.warn("Erro ao carregar agendamentos:", err);
+      setError("Não foi possível carregar os agendamentos.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
+
+  const handleUpdateStatus = async (id: string, status: AppointmentStatus) => {
+    try {
+      const updatedAppointment = await updateAppointment(id, { status });
+
+      setAppointments((prev) =>
+        prev.map((appointment) =>
+          appointment.id === id
+            ? mapApiAppointmentToListAppointment(updatedAppointment)
+            : appointment
+        )
+      );
+    } catch (err) {
+      console.warn("Erro ao atualizar agendamento:", err);
+      setError("Não foi possível atualizar o agendamento.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAppointment(id);
+
+      setAppointments((prev) =>
+        prev.filter((appointment) => appointment.id !== id)
+      );
+    } catch (err) {
+      console.warn("Erro ao excluir agendamento:", err);
+      setError("Não foi possível excluir o agendamento.");
+    }
+  };
 
   const handleCancel = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((apt) => apt.id === id ? { ...apt, status: "cancelado" } : apt)
-    );
+    handleUpdateStatus(id, "cancelled");
   };
 
   const handleConfirm = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((apt) => apt.id === id ? { ...apt, status: "concluído" } : apt)
-    );
+    handleUpdateStatus(id, "completed");
   };
 
   const handleNoShow = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((apt) => apt.id === id ? { ...apt, status: "não_comparecimento" } : apt)
-    );
+    handleUpdateStatus(id, "no_show");
   };
 
   return (
@@ -66,13 +154,31 @@ export default function AdminAgenda() {
           Todos os agendamentos do petshop
         </Text>
 
-        <AppointmentsList
-          appointments={appointments}
-          onCancel={handleCancel}
-          onConfirm={handleConfirm}
-          onNoShow={handleNoShow}
-          showClientName
-        />
+        {loading ? (
+          <View style={styles.feedbackContainer}>
+            <ActivityIndicator />
+            <Text style={styles.feedbackText}>Carregando agendamentos...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.feedbackContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : appointments.length === 0 ? (
+          <View style={styles.feedbackContainer}>
+            <Text style={styles.feedbackText}>
+              Nenhum agendamento encontrado.
+            </Text>
+          </View>
+        ) : (
+          <AppointmentsList
+            appointments={appointments}
+            onCancel={handleCancel}
+            onConfirm={handleConfirm}
+            onNoShow={handleNoShow}
+            onDelete={handleDelete}
+            showClientName
+          />
+        )}
       </View>
 
       <AdminMenu />
@@ -103,5 +209,26 @@ const styles = StyleSheet.create({
     color: "gray",
     marginBottom: 16,
     marginLeft: 16,
+  },
+
+  feedbackContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 20,
+  },
+
+  feedbackText: {
+    fontSize: 14,
+    color: "gray",
+    textAlign: "center",
+  },
+
+  errorText: {
+    fontSize: 14,
+    color: "#E5484D",
+    textAlign: "center",
+    fontWeight: "600",
   },
 });

@@ -6,7 +6,7 @@ export type Staff = {
   role: string;
   position: string;
   tags: string[];
-  active?: boolean; 
+  active?: boolean;
 };
 
 export type UpdateStaffData = {

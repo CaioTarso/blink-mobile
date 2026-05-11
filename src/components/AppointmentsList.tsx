@@ -1,14 +1,14 @@
+import { colors } from "@/styles/colors";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
   Animated,
+  FlatList,
   Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { colors } from "@/styles/colors";
 
 export interface Appointment {
   id: string;
@@ -26,6 +26,7 @@ interface AppointmentsListProps {
   onCancel: (id: string) => void;
   onConfirm?: (id: string) => void;
   onNoShow?: (id: string) => void;
+  onDelete?: (id: string) => void;
   showClientName?: boolean;
 }
 
@@ -40,7 +41,7 @@ type ConfirmTarget = {
   id: string;
   service: string;
   petName: string;
-  action: "cancelar" | "confirmar" | "não_comparecimento";
+  action: "cancelar" | "confirmar" | "não_comparecimento" | "excluir";
 };
 
 export function AppointmentsList({
@@ -48,6 +49,7 @@ export function AppointmentsList({
   onCancel,
   onConfirm,
   onNoShow,
+  onDelete,
   showClientName = false,
 }: AppointmentsListProps) {
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
@@ -73,6 +75,7 @@ export function AppointmentsList({
 
   const handleConfirm = () => {
     if (!confirmTarget) return;
+
     if (confirmTarget.action === "cancelar") {
       onCancel(confirmTarget.id);
       showToast("Agendamento cancelado com sucesso!");
@@ -82,7 +85,11 @@ export function AppointmentsList({
     } else if (confirmTarget.action === "não_comparecimento" && onNoShow) {
       onNoShow(confirmTarget.id);
       showToast("Marcado como não compareceu!");
+    } else if (confirmTarget.action === "excluir" && onDelete) {
+      onDelete(confirmTarget.id);
+      showToast("Agendamento excluído com sucesso!");
     }
+
     setConfirmTarget(null);
   };
 
@@ -90,6 +97,7 @@ export function AppointmentsList({
     cancelar: "cancelar",
     confirmar: "confirmar",
     não_comparecimento: "marcar como não compareceu",
+    excluir: "excluir",
   };
 
   return (
@@ -119,6 +127,7 @@ export function AppointmentsList({
               para{" "}
               <Text style={styles.modalBold}>{confirmTarget?.petName}</Text>?
             </Text>
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, { backgroundColor: "#54A779" }]}
@@ -126,6 +135,7 @@ export function AppointmentsList({
               >
                 <Text style={styles.modalBtnTextLight}>Sim</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.modalBtn, { backgroundColor: "#EEE" }]}
                 onPress={() => setConfirmTarget(null)}
@@ -144,6 +154,7 @@ export function AppointmentsList({
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
           const status = statusConfig[item.status];
+
           return (
             <View style={styles.card}>
               <View style={styles.cardTop}>
@@ -160,38 +171,47 @@ export function AppointmentsList({
                 <View style={styles.cardInfo}>
                   <Text style={styles.serviceName}>{item.service}</Text>
                   <Text style={styles.petName}>Pet: {item.petName}</Text>
+
                   {showClientName && item.clientName && (
                     <Text style={styles.clientName}>
                       Cliente: {item.clientName}
                     </Text>
                   )}
+
                   <Text style={styles.professional}>
                     Profissional: {item.professional}
                   </Text>
                 </View>
 
-                <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: status.color },
+                  ]}
+                >
                   <Text style={styles.statusText}>{status.label}</Text>
                 </View>
               </View>
 
-              {item.status === "agendado" && (
+              {(item.status === "agendado" || onDelete) && (
                 <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: "#E5484D" }]}
-                    onPress={() =>
-                      setConfirmTarget({
-                        id: item.id,
-                        service: item.service,
-                        petName: item.petName,
-                        action: "cancelar",
-                      })
-                    }
-                  >
-                    <Text style={styles.actionBtnText}>Cancelar</Text>
-                  </TouchableOpacity>
+                  {item.status === "agendado" && (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, { backgroundColor: "#E5484D" }]}
+                      onPress={() =>
+                        setConfirmTarget({
+                          id: item.id,
+                          service: item.service,
+                          petName: item.petName,
+                          action: "cancelar",
+                        })
+                      }
+                    >
+                      <Text style={styles.actionBtnText}>Cancelar</Text>
+                    </TouchableOpacity>
+                  )}
 
-                  {onConfirm && (
+                  {onConfirm && item.status === "agendado" && (
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: "#54A779" }]}
                       onPress={() =>
@@ -207,7 +227,7 @@ export function AppointmentsList({
                     </TouchableOpacity>
                   )}
 
-                  {onNoShow && (
+                  {onNoShow && item.status === "agendado" && (
                     <TouchableOpacity
                       style={[styles.actionBtn, { backgroundColor: "#6B7280" }]}
                       onPress={() =>
@@ -220,6 +240,22 @@ export function AppointmentsList({
                       }
                     >
                       <Text style={styles.actionBtnText}>Não veio</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {onDelete && (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, { backgroundColor: "#991B1B" }]}
+                      onPress={() =>
+                        setConfirmTarget({
+                          id: item.id,
+                          service: item.service,
+                          petName: item.petName,
+                          action: "excluir",
+                        })
+                      }
+                    >
+                      <Text style={styles.actionBtnText}>Excluir</Text>
                     </TouchableOpacity>
                   )}
                 </View>

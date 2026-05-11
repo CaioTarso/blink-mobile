@@ -1,10 +1,17 @@
-export type AppointmentStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
+export type AppointmentStatus =
+  | "pending"
+  | "confirmed"
+  | "completed"
+  | "cancelled"
+  | "no_show";
 
 export type AppointmentClient = {
   id: string;
   user_id: string;
   phone: string;
   address: string;
+  name?: string;
+  full_name?: string;
 };
 
 export type AppointmentStaff = {
@@ -12,6 +19,8 @@ export type AppointmentStaff = {
   user_id: string;
   position: string;
   phone: string;
+  name?: string;
+  full_name?: string;
 };
 
 export type AppointmentPet = {
@@ -19,14 +28,28 @@ export type AppointmentPet = {
   name: string;
   species: string;
   breed: string;
+  full_name?: string;
 };
 
 export type Appointment = {
   id: string;
+  pet_id?: string;
+  client_id?: string;
+  staff_id?: string | null;
+  scheduled_date?: string | null;
   start_time: string;
-  end_time: string;
+  end_time: string | null;
   status: AppointmentStatus;
   pet: AppointmentPet;
   client: AppointmentClient;
-  staff: AppointmentStaff;
+  staff?: AppointmentStaff | null;
+};
+
+export type UpdateAppointmentPayload = {
+  pet_id?: string;
+  client_id?: string;
+  staff_id?: string | null;
+  start_time?: string;
+  end_time?: string | null;
+  status?: AppointmentStatus;
 };
