@@ -34,10 +34,16 @@ const MOCK_PETS = [
 export default function BookingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState([]);
-  const [professionals, setProfessionals] = useState([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [professionals, setProfessionals] = useState<any[]>([]);
 
-  const initialState = {
+  const initialState: {
+    pet: any;
+    service: any;
+    professional: any;
+    date: string;
+    time: string | null;
+  } = {
     pet: null,
     service: null,
     professional: null,
@@ -128,7 +134,7 @@ export default function BookingScreen() {
         ))}
 
         {/* PASSO 2: SERVIÇOS */}
-        {step === 2 && (services as any[]).map(item => (
+        {step === 2 && services.map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles.serviceCard}
@@ -144,7 +150,7 @@ export default function BookingScreen() {
         ))}
 
         {/* PASSO 3: PROFISSIONAL */}
-        {step === 3 && (professionals as any[]).map(pro => (
+        {step === 3 && professionals.map(pro => (
           <TouchableOpacity
             key={pro.id}
             style={styles.serviceCard}
@@ -209,19 +215,17 @@ export default function BookingScreen() {
           <View>
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Pet</Text>
-              <Text style={styles.sumValue}>{(appointment.pet as any)?.name}</Text>
+              <Text style={styles.sumValue}>{appointment.pet?.name}</Text>
             </View>
 
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Serviço</Text>
-              <Text style={styles.sumValue}>{(appointment.service as any)?.name}</Text>
+              <Text style={styles.sumValue}>{appointment.service?.name}</Text>
             </View>
 
             <View style={styles.summaryBox}>
               <Text style={styles.sumLabel}>Profissional</Text>
-              <Text style={styles.sumValue}>
-                {(appointment.professional as any)?.name}
-              </Text>
+              <Text style={styles.sumValue}>{appointment.professional?.name}</Text>
             </View>
 
             <View style={styles.summaryBox}>
@@ -232,7 +236,7 @@ export default function BookingScreen() {
             <View style={[styles.summaryBox, styles.totalBox]}>
               <Text style={styles.totalLabel}>Valor Total</Text>
               <Text style={styles.totalValue}>
-                R$ {(appointment.service as any)?.price ? (appointment.service as any).price.toFixed(2) : "0.00"}
+                R$ {appointment.service?.price ? appointment.service.price.toFixed(2) : "0.00"}
               </Text>
             </View>
 
@@ -271,44 +275,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF",
   },
-
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
     backgroundColor: "#FFF",
   },
-
   topRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
   },
-
   titleWrapper: {
     flex: 1,
   },
-
   mainTitle: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 6,
     marginLeft: 16,
   },
-
   subtitle: {
     fontSize: 14,
     color: "gray",
     marginLeft: 16,
     marginBottom: 16,
   },
-
   stepperContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 20,
   },
-
   stepCircle: {
     width: 34,
     height: 34,
@@ -316,36 +313,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   activeCircle: {
     backgroundColor: colors.accent,
   },
-
   pastCircle: {
     backgroundColor: colors.secondary,
   },
-
   inactiveCircle: {
     backgroundColor: "#B2D8D3",
   },
-
   stepNumberText: {
     color: "#FFF",
     fontWeight: "bold",
   },
-
   stepLine: {
     width: 20,
     height: 1,
     backgroundColor: "#CCC",
     marginHorizontal: 8,
   },
-
   content: {
     padding: 20,
     paddingBottom: 20,
   },
-
   card: {
     padding: 15,
     backgroundColor: "#fff",
@@ -359,24 +349,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-
   petImage: {
     width: 70,
     height: 70,
     borderRadius: 35,
     marginRight: 15,
   },
-
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
   },
-
   cardSub: {
     fontSize: 14,
     color: "#666",
   },
-
   serviceCard: {
     flexDirection: "row",
     padding: 15,
@@ -389,14 +375,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-
   serviceImage: {
     width: 90,
     height: 90,
     borderRadius: 10,
     marginRight: 15,
   },
-
   proImageContainer: {
     width: 50,
     height: 50,
@@ -406,68 +390,57 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   fullImg: {
     width: "100%",
     height: "100%",
   },
-
   serviceInfo: {
     flex: 1,
     justifyContent: "center",
   },
-
   serviceName: {
     fontSize: 16,
     fontWeight: "bold",
     color: colors.text,
     marginBottom: 4,
   },
-
   serviceDescription: {
     fontSize: 12,
     color: "#444",
   },
-
   servicePrice: {
     fontSize: 15,
     fontWeight: "bold",
     marginTop: 5,
     color: colors.secondary,
   },
-
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 6,
     marginTop: 4,
   },
-
   tag: {
     backgroundColor: colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
-
   tagText: {
     fontSize: 11,
     color: "#fff",
     fontWeight: "600",
   },
-
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
     marginVertical: 15,
   },
-
   timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-
   timeBtn: {
     width: "31%",
     padding: 10,
@@ -477,20 +450,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-
   timeBtnActive: {
     backgroundColor: colors.secondary,
   },
-
   timeText: {
     color: colors.secondary,
     fontWeight: "bold",
   },
-
   timeTextActive: {
     color: "#FFF",
   },
-
   confirmBtn: {
     backgroundColor: colors.secondary,
     padding: 18,
@@ -498,35 +467,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-
   confirmBtnText: {
     color: "#FFF",
     fontWeight: "bold",
   },
-
   summaryBox: {
     backgroundColor: "#F5F5F5",
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
   },
-
   sumLabel: {
     fontSize: 12,
     color: "#666",
   },
-
   sumValue: {
     fontSize: 16,
     fontWeight: "bold",
   },
-
   footerBtns: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
   },
-
   cancelAction: {
     backgroundColor: "#E5484D",
     flex: 0.48,
@@ -534,7 +497,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
   confirmAction: {
     backgroundColor: colors.secondary,
     flex: 0.48,
@@ -542,20 +504,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
   successContainer: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: 50,
   },
-
   successTitle: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 20,
   },
-
   successSub: {
     fontSize: 16,
     color: "#666",
@@ -563,7 +522,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingHorizontal: 20,
   },
-
   backHomeBtn: {
     backgroundColor: colors.accent,
     padding: 18,
@@ -572,7 +530,6 @@ const styles = StyleSheet.create({
     marginTop: 40,
     width: "100%",
   },
-
   totalBox: {
     backgroundColor: "#F0FAF4",
     borderWidth: 1,
@@ -582,13 +539,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   totalLabel: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
   },
-
   totalValue: {
     fontSize: 20,
     fontWeight: "bold",
