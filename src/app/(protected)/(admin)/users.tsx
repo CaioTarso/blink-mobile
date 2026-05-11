@@ -120,6 +120,7 @@ export default function UsersScreen() {
   };
 
   const handleOpenEdit = (user: Staff) => {
+    console.log("editingUser:", user);
     setEditingUser(user);
     setFormModalVisible(true);
   };
@@ -162,6 +163,7 @@ export default function UsersScreen() {
           phone: data.phone,
           tags: data.tags,
           role: "Staff",
+          position: data.position ?? "",
           active: true,
         };
         setUsers((prev) => [...prev, newUser]);
@@ -282,10 +284,10 @@ export default function UsersScreen() {
               email={item.email}
               phone={item.phone}
               tags={item.tags}
-              active={item.active}
+              active={item.active ?? true}
               onEdit={() => handleOpenEdit(item)}
               onDelete={() => handleDelete(item.id, item.name)}
-              onToggleActive={() => handleToggleActive(item.id, item.name, item.active)}
+              onToggleActive={() => handleToggleActive(item.id, item.name, item.active ?? true)}
             />
           )}
         />

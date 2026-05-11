@@ -1,14 +1,7 @@
 import { api } from "./api";
+import { Staff, UpdateStaffData } from "../types/staff";
 
-export type Staff = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  tags: string[];
-  active: boolean;
-};
+export type { Staff, UpdateStaffData };
 
 export async function listStaff(): Promise<Staff[]> {
   const response = await api.get<any>("/api/admin/staff");
@@ -19,34 +12,24 @@ export async function listStaff(): Promise<Staff[]> {
     name: item.name,
     email: item.email,
     phone: item.phone ?? "",
-    role: item.position ?? item.role ?? "Staff",
+    role: item.role ?? "staff",
+    position: item.position ?? "",
     tags: item.tags ?? [],
-    active: item.active ?? item.is_active ?? true,
   }));
 }
 
-export async function updateStaff(
-  id: string,
-  data: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    position?: string;
-    tags?: string[];
-    active?: boolean;
-  }
-): Promise<Partial<Staff>> {
+export async function updateStaff(id: string, data: UpdateStaffData): Promise<Partial<Staff>> {
   const response = await api.put<any>(`/api/admin/staff/${id}`, data);
-  const item = response.data.staff ?? response.data.data ?? response.data;
+  const item = response.data;
 
   return {
     id: String(item.id),
     name: item.name,
     email: item.email,
     phone: item.phone ?? "",
-    role: item.position ?? item.role ?? "Staff",
+    role: item.role ?? "staff",
+    position: item.position ?? "",
     tags: item.tags ?? [],
-    active: item.active ?? item.is_active ?? true,
   };
 }
 
