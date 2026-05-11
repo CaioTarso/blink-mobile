@@ -3,6 +3,7 @@ export interface Service {
   name: string;
   description: string;
   price: number;
+  duration_minutes?: number;
   image: string;
   active: boolean;
 }

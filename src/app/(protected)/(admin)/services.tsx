@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const emptyForm = { name: "", description: "", price: "", imageUrl: "" };
+const emptyForm = { name: "", description: "", price: "", durationMinutes: "", imageUrl: "" };
 type FormErrors = Partial<Record<keyof typeof emptyForm, string>>;
 
 export default function AdminServices() {
@@ -44,6 +44,7 @@ export default function AdminServices() {
         name: item.name,
         description: item.description,
         price: Number(item.price),
+        duration_minutes: item.duration_minutes ? Number(item.duration_minutes) : undefined,
         image: item.image_url,
         active: item.active,
       }));
@@ -65,6 +66,7 @@ export default function AdminServices() {
         name: editingService.name,
         description: editingService.description,
         price: editingService.price.toFixed(2),
+        durationMinutes: editingService.duration_minutes ? String(editingService.duration_minutes) : "",
         imageUrl: editingService.image,
       });
       setImage(null);
@@ -116,6 +118,7 @@ export default function AdminServices() {
     if (!form.description.trim())
       newErrors.description = "Descrição é obrigatória";
     if (!form.price.trim()) newErrors.price = "Preço é obrigatório";
+    if (!form.durationMinutes.trim()) newErrors.durationMinutes = "Duração é obrigatória";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -128,6 +131,7 @@ export default function AdminServices() {
           name: form.name,
           description: form.description,
           price: parseFloat(form.price.replace(",", ".")),
+          duration_minutes: parseInt(form.durationMinutes, 10),
           image_url: image || form.imageUrl,
         });
 
@@ -150,6 +154,8 @@ export default function AdminServices() {
           "price",
           String(parseFloat(form.price.replace(",", "."))),
         );
+
+        formData.append("duration_minutes", form.durationMinutes);
 
         if (image) {
           const response = await fetch(image);
@@ -458,6 +464,14 @@ export default function AdminServices() {
                 value={form.price}
                 onChangeText={(v) => setForm((p) => ({ ...p, price: v }))}
                 error={errors.price}
+              />
+              <Input
+                label="Duração (minutos)"
+                placeholder="Ex: 60"
+                keyboardType="numeric"
+                value={form.durationMinutes}
+                onChangeText={(v) => setForm((p) => ({ ...p, durationMinutes: v }))}
+                error={errors.durationMinutes}
               />
               <Input
                 label="URL da imagem"

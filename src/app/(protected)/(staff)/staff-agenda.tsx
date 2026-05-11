@@ -203,9 +203,9 @@ export default function StaffAgenda() {
               key={appointment.id}
               id={appointment.id}
               time={formatTime(appointment.start_time)}
-              client={appointment.client.user_id}
+              client={appointment.client.name || appointment.client.full_name || "Não informado"}
               pet={appointment.pet.name}
-              service={appointment.pet.breed}
+              service={appointment.service?.name ?? "Serviço não informado"}
               status={statusFromApi[appointment.status]}
               onChangeStatus={handleChangeStatus}
             />

@@ -1,38 +1,28 @@
-export const initialUsers = [
-  {
-    id: "1",
-    name: "João Silva",
-    role: "Admin",
-    specialty: "Veterinário",
-    email: "joao@email.com",
-    phone: "(85) 99999-0001",
-    tags: ["Banho", "Tosa"],
-    active: true,
-  },
-  {
-    id: "2",
-    name: "Maria Souza",
-    role: "Staff",
-    specialty: "Tosa Especializada",
-    email: "maria@email.com",
-    phone: "(85) 99999-0002",
-    tags: ["Banho e Tosa"],
-    active: true,
-  },
-  {
-    id: "3",
-    name: "Carlos Lima",
-    role: "Client",
-    email: "carlos@email.com",
-    phone: "(85) 99999-0003",
-    tags: ["Consulta Veterinária"],
-    active: false,
-  },
-];
+import { api } from "./api";
 
-// Retorna apenas Admin e Staff ativos — para tela de agendamento
-export const getProfessionals = async () => {
-  return initialUsers.filter(
-    (user) => user.active && (user.role === "Admin" || user.role === "Staff")
-  );
+export type Professional = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  tags: string[];
+};
+
+export const getProfessionals = async (): Promise<Professional[]> => {
+  const response = await api.get<any>("/api/staff");
+  const list = Array.isArray(response.data.data)
+    ? response.data.data
+    : Array.isArray(response.data)
+      ? response.data
+      : [];
+
+  return list.map((item: any) => ({
+    id: String(item.id),
+    name: item.name,
+    email: item.email ?? "",
+    phone: item.phone ?? "",
+    position: item.position ?? "",
+    tags: item.tags ?? [],
+  }));
 };
