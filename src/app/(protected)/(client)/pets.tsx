@@ -6,10 +6,10 @@ import {
   deletePet,
   getPetsByClient,
   updatePet,
-  type Pet as ApiPet,
-  type PetSpecies,
 } from "@/services/pets";
+
 import { colors } from "@/styles/colors";
+import type { Pet as ApiPet, PetSpecies } from "@/types/pets";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
