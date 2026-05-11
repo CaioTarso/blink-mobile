@@ -1,14 +1,18 @@
 import { Input } from "@/components/Input";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
+import { AddIcon } from "@/components/icons/add-icon";
+import { serviceService } from "@/services/services";
+import { colors } from "@/styles/colors";
+import { DeleteTarget, Service, ToggleTarget } from "@/types/service";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
   KeyboardAvoidingView,
-  Modal as RNModal,
   Platform,
+  Modal as RNModal,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,61 +20,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "@/styles/colors";
-import { AddIcon } from "@/components/icons/add-icon";
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  active: boolean;
-}
-
-const mockServices: Service[] = [
-  {
-    id: "1",
-    name: "Banho",
-    description: "Banho completo com shampoo especial, secagem e perfume.",
-    price: 60.00,
-    image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=500",
-    active: true,
-  },
-  {
-    id: "2",
-    name: "Tosa",
-    description: "Tosa higiênica padrão da raça, garantindo conforto e estética.",
-    price: 150.00,
-    image: "https://cdn.awsli.com.br/2485/2485118/arquivos/o-spitz-da-pomerania-esta-tomando-banho-com-xampu-no-banho-do-cachorro-1024x683.png",
-    active: true,
-  },
-  {
-    id: "3",
-    name: "Ducha Higiênica",
-    description: "Ducha higiênica padrão da raça, garantindo conforto e estética.",
-    price: 100.00,
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDwQMgvmUQCaklFBPLqXC4eBr-Xa7c_SPKCSiAK0aRew&s",
-    active: true,
-  },
-  {
-    id: "4",
-    name: "Banho de gato",
-    description: "Banho completo com shampoo especial, secagem e perfume.",
-    price: 200.00,
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUoKYbEOtB3aa_tdUT3rYh4S-OAiYR7p-kIw&s",
-    active: false,
-  },
-];
-
-type ToggleTarget = { id: string; name: string; currentActive: boolean };
-type DeleteTarget = { id: string; name: string };
 
 const emptyForm = { name: "", description: "", price: "", imageUrl: "" };
 type FormErrors = Partial<Record<keyof typeof emptyForm, string>>;
 
 export default function AdminServices() {
-  const [services, setServices] = useState<Service[]>(mockServices);
+  const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
   const [modalMode, setModalMode] = useState<"new" | "edit" | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -79,6 +34,30 @@ export default function AdminServices() {
   const [image, setImage] = useState<string | null>(null);
   const [toggleTarget, setToggleTarget] = useState<ToggleTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+
+  const loadServices = async () => {
+    try {
+      const data = await serviceService.getAll();
+
+      const formatted = data.map((item: any) => ({
+        id: String(item.id),
+        name: item.name,
+        description: item.description,
+        price: Number(item.price),
+        image: item.image_url,
+        active: item.active,
+      }));
+
+      setServices(formatted);
+    } catch (error) {
+      console.log(error);
+      alert("Erro ao carregar serviços");
+    }
+  };
+
+  useEffect(() => {
+    loadServices();
+  }, []);
 
   useEffect(() => {
     if (modalMode === "edit" && editingService) {
@@ -99,7 +78,7 @@ export default function AdminServices() {
 
   const filteredServices = search.trim()
     ? services.filter((s) =>
-        s.name.toLowerCase().includes(search.toLowerCase())
+        s.name.toLowerCase().includes(search.toLowerCase()),
       )
     : services;
 
@@ -134,38 +113,77 @@ export default function AdminServices() {
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
     if (!form.name.trim()) newErrors.name = "Nome é obrigatório";
-    if (!form.description.trim()) newErrors.description = "Descrição é obrigatória";
+    if (!form.description.trim())
+      newErrors.description = "Descrição é obrigatória";
     if (!form.price.trim()) newErrors.price = "Preço é obrigatório";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
     if (modalMode === "edit" && editingService) {
-      setServices((prev) =>
-        prev.map((s) =>
-          s.id === editingService.id
-            ? {
-                ...s,
-                name: form.name,
-                description: form.description,
-                price: parseFloat(form.price.replace(",", ".")) || s.price,
-                image: image || form.imageUrl || s.image,
-              }
-            : s
-        )
-      );
+      try {
+        await serviceService.update(editingService.id, {
+          name: form.name,
+          description: form.description,
+          price: parseFloat(form.price.replace(",", ".")),
+          image_url: image || form.imageUrl,
+        });
+
+        await loadServices();
+
+        handleCloseModal();
+      } catch (error) {
+        console.log(error);
+        alert("Erro ao atualizar serviço");
+      }
     } else if (modalMode === "new") {
-      const newService: Service = {
-        id: String(Date.now()),
-        name: form.name,
-        description: form.description,
-        price: parseFloat(form.price.replace(",", ".")) || 0,
-        image: image || form.imageUrl,
-        active: true,
-      };
-      setServices((prev) => [...prev, newService]);
+      try {
+        const formData = new FormData();
+
+        formData.append("name", form.name);
+
+        formData.append("description", form.description);
+
+        formData.append(
+          "price",
+          String(parseFloat(form.price.replace(",", "."))),
+        );
+
+        if (image) {
+          const response = await fetch(image);
+
+          const blob = await response.blob();
+
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+              resolve(reader.result as string);
+            };
+
+            reader.onerror = reject;
+
+            reader.readAsDataURL(blob);
+          });
+
+          formData.append("image_url", base64);
+        }
+
+        if (form.imageUrl && !image) {
+          formData.append("image_url", form.imageUrl);
+        }
+
+        await serviceService.create(formData);
+
+        await loadServices();
+
+        handleCloseModal();
+      } catch (error) {
+        console.log(error);
+        alert("Erro ao criar serviço");
+      }
     }
     handleCloseModal();
   };
@@ -174,22 +192,32 @@ export default function AdminServices() {
     if (!toggleTarget) return;
     setServices((prev) =>
       prev.map((s) =>
-        s.id === toggleTarget.id ? { ...s, active: !toggleTarget.currentActive } : s
-      )
+        s.id === toggleTarget.id
+          ? { ...s, active: !toggleTarget.currentActive }
+          : s,
+      ),
     );
     setToggleTarget(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    setServices((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+    try {
+      await serviceService.delete(deleteTarget.id);
+
+      await loadServices();
+
+      setDeleteTarget(null);
+    } catch (error) {
+      console.log(error);
+      alert("Erro ao deletar serviço");
+    }
     setDeleteTarget(null);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-
         <View style={styles.headerTop}>
           <Text style={styles.title}>Serviços</Text>
           <TouchableOpacity
@@ -230,11 +258,12 @@ export default function AdminServices() {
 
               {/* Conteúdo direito */}
               <View style={styles.cardInfo}>
-
                 {/* Linha 1: título + badge + toggle */}
                 <View style={styles.cardHeader}>
                   <View style={styles.cardTitleRow}>
-                    <Text style={[styles.cardTitle, !item.active && styles.dimmed]}>
+                    <Text
+                      style={[styles.cardTitle, !item.active && styles.dimmed]}
+                    >
                       {item.name}
                     </Text>
                     {!item.active && (
@@ -249,7 +278,11 @@ export default function AdminServices() {
                       item.active ? styles.btnDeactivate : styles.btnActivate,
                     ]}
                     onPress={() =>
-                      setToggleTarget({ id: item.id, name: item.name, currentActive: item.active })
+                      setToggleTarget({
+                        id: item.id,
+                        name: item.name,
+                        currentActive: item.active,
+                      })
                     }
                   >
                     <Text style={styles.toggleText}>
@@ -260,7 +293,10 @@ export default function AdminServices() {
 
                 {/* Descrição e preço */}
                 <Text
-                  style={[styles.cardDescription, !item.active && styles.dimmed]}
+                  style={[
+                    styles.cardDescription,
+                    !item.active && styles.dimmed,
+                  ]}
                   numberOfLines={2}
                 >
                   {item.description}
@@ -274,7 +310,9 @@ export default function AdminServices() {
                   <TouchableOpacity
                     style={[
                       styles.btnEdit,
-                      item.active ? { backgroundColor: "#FFA500" } : styles.btnDisabled,
+                      item.active
+                        ? { backgroundColor: "#FFA500" }
+                        : styles.btnDisabled,
                     ]}
                     onPress={() => handleOpenEdit(item)}
                     disabled={!item.active}
@@ -285,9 +323,13 @@ export default function AdminServices() {
                   <TouchableOpacity
                     style={[
                       styles.btnDelete,
-                      item.active ? { backgroundColor: "#E5484D" } : styles.btnDisabled,
+                      item.active
+                        ? { backgroundColor: "#E5484D" }
+                        : styles.btnDisabled,
                     ]}
-                    onPress={() => setDeleteTarget({ id: item.id, name: item.name })}
+                    onPress={() =>
+                      setDeleteTarget({ id: item.id, name: item.name })
+                    }
                     disabled={!item.active}
                   >
                     <Text style={styles.btnText}>Excluir</Text>
@@ -319,7 +361,10 @@ export default function AdminServices() {
             </Text>
             <View style={styles.confirmActions}>
               <TouchableOpacity
-                style={[styles.confirmBtn, { backgroundColor: colors.secondary }]}
+                style={[
+                  styles.confirmBtn,
+                  { backgroundColor: colors.secondary },
+                ]}
                 onPress={handleConfirmToggle}
               >
                 <Text style={styles.confirmBtnTextLight}>Sim</Text>
@@ -347,13 +392,15 @@ export default function AdminServices() {
             <Text style={styles.confirmTitle}>Confirmar exclusão</Text>
             <Text style={styles.confirmMessage}>
               Tem certeza que deseja{" "}
-              <Text style={styles.confirmBold}>excluir</Text>{" "}
-              o serviço{" "}
+              <Text style={styles.confirmBold}>excluir</Text> o serviço{" "}
               <Text style={styles.confirmBold}>{deleteTarget?.name}</Text>?
             </Text>
             <View style={styles.confirmActions}>
               <TouchableOpacity
-                style={[styles.confirmBtn, { backgroundColor: colors.secondary }]}
+                style={[
+                  styles.confirmBtn,
+                  { backgroundColor: colors.secondary },
+                ]}
                 onPress={handleConfirmDelete}
               >
                 <Text style={styles.confirmBtnTextLight}>Sim</Text>
@@ -428,18 +475,31 @@ export default function AdminServices() {
                   />
                 ) : (
                   <>
-                    <Text style={styles.uploadText}>Fazer upload ou copiar link</Text>
-                    <Ionicons name="document-text" size={24} color="#FFD700" style={{ marginTop: 5 }} />
+                    <Text style={styles.uploadText}>
+                      Fazer upload ou copiar link
+                    </Text>
+                    <Ionicons
+                      name="document-text"
+                      size={24}
+                      color="#FFD700"
+                      style={{ marginTop: 5 }}
+                    />
                   </>
                 )}
               </TouchableOpacity>
             </ScrollView>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelButton} onPress={handleCloseModal}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseModal}
+              >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSave}
+              >
                 <Text style={styles.submitText}>
                   {modalMode === "new" ? "Salvar" : "Atualizar"}
                 </Text>

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from "axios";
+import axios, { AxiosError, AxiosInstance } from "axios";
 import { Platform } from "react-native";
 
 export const BASE_URL = "http://localhost:8000";
@@ -6,7 +6,7 @@ export const BASE_URL = "http://localhost:8000";
 const TOKEN_KEY = "@blink:token";
 
 class ApiClient {
-  private instance: AxiosInstance;
+  public instance: AxiosInstance;
   private token: string | null = null;
 
   constructor() {
@@ -24,7 +24,9 @@ class ApiClient {
       if (this.token) {
         config.headers.Authorization = `Bearer ${this.token}`;
       }
-      console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url} | Token: ${this.token ? 'SIM (' + this.token.substring(0, 20) + '...)' : 'NÃO'}`);
+      console.log(
+        `[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url} | Token: ${this.token ? "SIM (" + this.token.substring(0, 20) + "...)" : "NÃO"}`,
+      );
       return config;
     });
 
@@ -39,7 +41,7 @@ class ApiClient {
           this.clearToken();
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 

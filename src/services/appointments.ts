@@ -1,22 +1,74 @@
-import {
-  Appointment,
-  AppointmentStatus,
-  UpdateAppointmentPayload,
-} from "@/types";
+import { Appointment as AppointmentUI } from "@/components/AppointmentsList";
 import { api } from "./api";
 
-export type { Appointment, AppointmentStatus };
+import { 
+  AppointmentApi, 
+  CreateAppointmentPayload, 
+  UpdateAppointmentPayload,
+  AppointmentStatus // Importado da dev
+} from "@/types/appointment";
 
-export async function getAppointments(): Promise<Appointment[]> {
-  const response = await api.get<Appointment[]>("/api/appointments");
-  return response.data;
+
+
+function toAppointment(raw: AppointmentApi): AppointmentUI {
+  return {
+    id: String(raw.id),
+    date: raw.date,
+    time: raw.time?.slice(0, 5) ?? "",
+    service: raw.service?.name ?? "—",
+    petName: raw.pet?.name ?? "—",
+    professional: raw.professional?.name ?? "—",
+    status: raw.status,
+  };
 }
 
-export async function getStaffAppointments(staffId: string): Promise<Appointment[]> {
-  const response = await api.get<Appointment[]>(
+// --- FUNÇÕES DO CLIENTE ---
+export async function listMyAppointments(): Promise<AppointmentUI[]> {
+  const response = await api.get<AppointmentApi[]>("/api/appointments/me");
+  return response.data.map(toAppointment);
+}
+
+export async function getAppointments(): Promise<AppointmentUI[]> {
+  const response = await api.get<AppointmentApi[]>("/api/appointments");
+  return response.data.map(toAppointment);
+}
+
+export async function createAppointment(
+  payload: CreateAppointmentPayload
+): Promise<AppointmentUI> {
+  const response = await api.post<AppointmentApi>(
+    "/api/appointments",
+    payload
+  );
+
+  return toAppointment(response.data);
+}
+
+export async function cancelAppointment(id: string): Promise<void> {
+  await api.delete(`/api/appointments/${id}`);
+}
+
+export async function updateAppointment(
+  id: string,
+  payload: UpdateAppointmentPayload
+): Promise<AppointmentUI> {
+  const response = await api.put<AppointmentApi>(
+    `/api/appointments/${id}`,
+    payload
+  );
+
+  return toAppointment(response.data);
+}
+
+// --- FUNÇÕES DO STAFF ---
+export async function getStaffAppointments(
+  staffId: string
+): Promise<AppointmentUI[]> {
+  const response = await api.get<AppointmentApi[]>(
     `/api/staff/${staffId}/appointments`
   );
-  return response.data;
+
+  return response.data.map(toAppointment);
 }
 
 export async function updateAppointment(
@@ -29,9 +81,9 @@ export async function updateAppointment(
 
 export async function updateAppointmentStatus(
   appointmentId: string,
-  status: AppointmentStatus
-): Promise<Appointment> {
-  const response = await api.patch<Appointment>(
+  status: any
+): Promise<any> {
+  const response = await api.patch<any>(
     `/api/appointments/${appointmentId}`,
     { status }
   );
