@@ -1,17 +1,27 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  SafeAreaView,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/styles/colors";
-import { ClientMenu } from "@/components/client/navigation/ClientMenu";
-import { ModalNewPet } from "@/components/client/navigation/ModalNewPet";
 import { ModalDeletePet } from "@/components/client/navigation/ModalDeletePet";
+import { ModalNewPet } from "@/components/client/navigation/ModalNewPet";
+import { getMe } from "@/services/auth";
+import {
+  createPet,
+  deletePet,
+  getPetsByClient,
+  updatePet,
+} from "@/services/pets";
+
+import { colors } from "@/styles/colors";
+import type { Pet as ApiPet, PetSpecies } from "@/types/pets";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type PetType = "Cachorro" | "Gato" | "Pássaro" | "Outro";
 type PetSex = "Macho" | "Fêmea";
@@ -27,42 +37,198 @@ type Pet = {
   notes: string;
 };
 
-const mockPets: Pet[] = [
-  {
-    id: "1",
-    name: "Rex",
-    breed: "Golden Retriever",
-    type: "Cachorro",
-    weight: 30,
-    age: 3,
-    sex: "Macho",
-    notes: "Muito dócil, adora água",
-  },
-  {
-    id: "2",
-    name: "Mimi",
-    breed: "Golden Retriever",
-    type: "Gato",
-    weight: 4,
-    age: 2,
-    sex: "Fêmea",
-    notes: "Muito dócil, adora água",
-  },
-];
+type PetFormData = {
+  name: string;
+  breed: string;
+  type: PetType;
+  weight: string;
+  age: string;
+  sex: PetSex;
+  notes: string;
+};
+
+const typeToSpecies: Record<PetType, PetSpecies> = {
+  Cachorro: "dog",
+  Gato: "cat",
+  Pássaro: "bird",
+  Outro: "other",
+};
+
+const speciesToType: Record<PetSpecies, PetType> = {
+  dog: "Cachorro",
+  cat: "Gato",
+  bird: "Pássaro",
+  rabbit: "Outro",
+  other: "Outro",
+};
+
+function apiPetToScreenPet(apiPet: ApiPet): Pet {
+  return {
+    id: apiPet.id,
+    name: apiPet.name,
+    breed: apiPet.breed,
+    type: speciesToType[apiPet.species] ?? "Outro",
+    weight: Number(apiPet.weight),
+    age: Number(apiPet.years),
+    sex: apiPet.sex as PetSex,
+    notes: apiPet.notes,
+  };
+}
 
 export default function ClientPets() {
-  const [pets, setPets] = useState<Pet[]>(mockPets);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [clientId, setClientId] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
+
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [deletingPet, setDeletingPet] = useState<Pet | null>(null);
+
+  async function loadPets() {
+    try {
+      setLoading(true);
+
+      const user = await getMe();
+
+      if (!user.client_id) {
+        Alert.alert("Erro", "Cliente não identificado. Faça login novamente.");
+        setPets([]);
+        return;
+      }
+
+      setClientId(user.client_id);
+
+      const apiPets = await getPetsByClient(user.client_id);
+
+      setPets(apiPets.map(apiPetToScreenPet));
+    } catch (error) {
+      console.log("Erro ao carregar pets:", error);
+      Alert.alert("Erro", "Não foi possível carregar seus pets.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmitPet(data: PetFormData) {
+    if (!clientId) {
+      Alert.alert("Erro", "Cliente não identificado. Faça login novamente.");
+      return;
+    }
+
+    const weight = Number(data.weight.replace(",", "."));
+    const years = Number(data.age);
+
+    if (!data.name.trim()) {
+      Alert.alert("Atenção", "Informe o nome do pet.");
+      return;
+    }
+
+    if (!data.breed.trim()) {
+      Alert.alert("Atenção", "Informe a raça do pet.");
+      return;
+    }
+
+    if (Number.isNaN(weight)) {
+      Alert.alert("Atenção", "Informe um peso válido.");
+      return;
+    }
+
+    if (Number.isNaN(years)) {
+      Alert.alert("Atenção", "Informe uma idade válida.");
+      return;
+    }
+
+    if (!data.notes.trim()) {
+      Alert.alert("Atenção", "Informe alguma observação sobre o pet.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const payload = {
+        client_id: clientId,
+        name: data.name.trim(),
+        species: typeToSpecies[data.type],
+        weight,
+        notes: data.notes.trim(),
+        breed: data.breed.trim(),
+        years,
+        sex: data.sex,
+      };
+
+      if (editingPet) {
+        const updatedPet = await updatePet(editingPet.id, payload);
+
+        setPets((prev) =>
+          prev.map((pet) =>
+            pet.id === editingPet.id ? apiPetToScreenPet(updatedPet) : pet
+          )
+        );
+
+        Alert.alert("Sucesso", "Pet atualizado com sucesso!");
+      } else {
+        const newPet = await createPet(payload);
+
+        setPets((prev) => [...prev, apiPetToScreenPet(newPet)]);
+
+        Alert.alert("Sucesso", "Pet cadastrado com sucesso!");
+      }
+
+      setModalVisible(false);
+      setEditingPet(null);
+    } catch (error) {
+      console.log("Erro ao salvar pet:", error);
+      Alert.alert("Erro", "Não foi possível salvar o pet.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingPet) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await deletePet(deletingPet.id);
+
+      setPets((prev) => prev.filter((pet) => pet.id !== deletingPet.id));
+
+      setDeleteVisible(false);
+      setDeletingPet(null);
+
+      Alert.alert("Sucesso", "Pet excluído com sucesso!");
+    } catch (error) {
+      console.log("Erro ao excluir pet:", error);
+      Alert.alert("Erro", "Não foi possível excluir o pet.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPets();
+  }, []);
 
   const renderItem = ({ item }: { item: Pet }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.cardAvatar}>
           <Text style={styles.cardEmoji}>
-            {item.type === "Cachorro" ? "🐶" : item.type === "Gato" ? "🐱" : item.type === "Pássaro" ? "🐦" : "🐾"}
+            {item.type === "Cachorro"
+              ? "🐶"
+              : item.type === "Gato"
+              ? "🐱"
+              : item.type === "Pássaro"
+              ? "🐦"
+              : "🐾"}
           </Text>
         </View>
 
@@ -81,10 +247,14 @@ export default function ClientPets() {
           <Text style={styles.statLabel}>Peso</Text>
           <Text style={styles.statValue}>{item.weight} kg</Text>
         </View>
+
         <View style={styles.statItem}>
           <Text style={styles.statLabel}>Idade</Text>
-          <Text style={styles.statValue}>{item.age} {item.age === 1 ? "ano" : "anos"}</Text>
+          <Text style={styles.statValue}>
+            {item.age} {item.age === 1 ? "ano" : "anos"}
+          </Text>
         </View>
+
         <View style={styles.statItem}>
           <Text style={styles.statLabel}>Sexo</Text>
           <Text style={styles.statValue}>{item.sex}</Text>
@@ -92,12 +262,15 @@ export default function ClientPets() {
       </View>
 
       {item.notes ? (
-        <Text style={styles.cardNotes} numberOfLines={2}>{item.notes}</Text>
+        <Text style={styles.cardNotes} numberOfLines={2}>
+          {item.notes}
+        </Text>
       ) : null}
 
       <View style={styles.cardActions}>
         <TouchableOpacity
           style={styles.editButton}
+          disabled={saving}
           onPress={() => {
             setEditingPet(item);
             setModalVisible(true);
@@ -108,6 +281,7 @@ export default function ClientPets() {
 
         <TouchableOpacity
           style={styles.deleteButton}
+          disabled={saving}
           onPress={() => {
             setDeletingPet(item);
             setDeleteVisible(true);
@@ -122,11 +296,17 @@ export default function ClientPets() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Meus Pets</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Meus Pets</Text>
+            <Text style={styles.headerSubtitle}>
+              Cadastre e gerencie seus animais de estimação
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={styles.newButton}
+            disabled={saving}
             onPress={() => {
               setEditingPet(null);
               setModalVisible(true);
@@ -137,48 +317,36 @@ export default function ClientPets() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.subtitle}>
-          Cadastre e gerencie seus animais de estimação
-        </Text>
-
-        <FlatList
-          data={pets}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>🐾</Text>
-              <Text style={styles.emptyText}>Nenhum pet cadastrado ainda.</Text>
-            </View>
-          }
-        />
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Carregando pets...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={pets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <Text style={styles.emptyEmoji}>🐾</Text>
+                <Text style={styles.emptyText}>Nenhum pet cadastrado ainda.</Text>
+              </View>
+            }
+          />
+        )}
 
         <ModalNewPet
           visible={modalVisible}
           onClose={() => {
+            if (saving) return;
+
             setModalVisible(false);
             setEditingPet(null);
           }}
-          onSubmit={(data) => {
-            if (editingPet) {
-              setPets((prev) =>
-                prev.map((p) =>
-                  p.id === editingPet.id
-                    ? { ...p, ...data, weight: parseFloat(data.weight), age: parseInt(data.age) }
-                    : p
-                )
-              );
-            } else {
-              setPets((prev) => [
-                ...prev,
-                { ...data, id: Date.now().toString(), weight: parseFloat(data.weight), age: parseInt(data.age) },
-              ]);
-            }
-            setModalVisible(false);
-            setEditingPet(null);
-          }}
+          onSubmit={handleSubmitPet}
           editingPet={editingPet}
         />
 
@@ -186,18 +354,14 @@ export default function ClientPets() {
           visible={deleteVisible}
           petName={deletingPet?.name ?? ""}
           onCancel={() => {
+            if (saving) return;
+
             setDeleteVisible(false);
             setDeletingPet(null);
           }}
-          onConfirm={() => {
-            setPets((prev) => prev.filter((p) => p.id !== deletingPet?.id));
-            setDeleteVisible(false);
-            setDeletingPet(null);
-          }}
+          onConfirm={handleConfirmDelete}
         />
       </View>
-
-      <ClientMenu />
     </SafeAreaView>
   );
 }
@@ -212,42 +376,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
   },
-  headerTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  backButton: {
     marginBottom: 10,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginLeft: 16,
+  header: {
+    flexDirection: "row",
+    gap: 6,
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 4,
+    maxWidth: 200,
   },
   newButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#54A779",
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
     paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
+    marginBottom: 10,
   },
   newButtonText: {
     color: "#fff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  subtitle: {
+    fontWeight: "700",
     fontSize: 14,
-    marginBottom: 15,
-    color: "gray",
-    marginLeft: 16,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 100,
+  },
+  loading: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 80,
+    gap: 12,
+  },
+  loadingText: {
+    color: "#888",
+    fontSize: 14,
   },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface || colors.primary,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -268,7 +447,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -293,8 +472,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    minWidth: 72,
-    alignItems: "center",
   },
   typeBadgeText: {
     color: "#ffffff",
@@ -303,7 +480,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: "row",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.surface,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 8,
@@ -343,12 +520,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   editButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#ffffff",
     fontWeight: "600",
   },
   deleteButton: {
-    width: "30%",
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#E5484D",
@@ -356,7 +533,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   deleteButtonText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#ffffff",
     fontWeight: "600",
   },
