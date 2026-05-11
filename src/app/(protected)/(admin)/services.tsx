@@ -3,6 +3,7 @@ import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import { AddIcon } from "@/components/icons/add-icon";
 import { serviceService } from "@/services/services";
 import { colors } from "@/styles/colors";
+import { DeleteTarget, Service, ToggleTarget } from "@/types/service";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
@@ -19,53 +20,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  active: boolean;
-}
-
-// const mockServices: Service[] = [
-//   {
-//     id: "1",
-//     name: "Banho",
-//     description: "Banho completo com shampoo especial, secagem e perfume.",
-//     price: 60.00,
-//     image: "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=500",
-//     active: true,
-//   },
-//   {
-//     id: "2",
-//     name: "Tosa",
-//     description: "Tosa higiênica padrão da raça, garantindo conforto e estética.",
-//     price: 150.00,
-//     image: "https://cdn.awsli.com.br/2485/2485118/arquivos/o-spitz-da-pomerania-esta-tomando-banho-com-xampu-no-banho-do-cachorro-1024x683.png",
-//     active: true,
-//   },
-//   {
-//     id: "3",
-//     name: "Ducha Higiênica",
-//     description: "Ducha higiênica padrão da raça, garantindo conforto e estética.",
-//     price: 100.00,
-//     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDwQMgvmUQCaklFBPLqXC4eBr-Xa7c_SPKCSiAK0aRew&s",
-//     active: true,
-//   },
-//   {
-//     id: "4",
-//     name: "Banho de gato",
-//     description: "Banho completo com shampoo especial, secagem e perfume.",
-//     price: 200.00,
-//     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUoKYbEOtB3aa_tdUT3rYh4S-OAiYR7p-kIw&s",
-//     active: false,
-//   },
-//];
-
-type ToggleTarget = { id: string; name: string; currentActive: boolean };
-type DeleteTarget = { id: string; name: string };
 
 const emptyForm = { name: "", description: "", price: "", imageUrl: "" };
 type FormErrors = Partial<Record<keyof typeof emptyForm, string>>;
