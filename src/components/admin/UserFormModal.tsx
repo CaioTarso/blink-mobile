@@ -44,6 +44,7 @@ type Props = {
     phone?: string;
     tags: string[];
     role: string;
+    position?: string;
   } | null;
   isLoading?: boolean;
 };
@@ -81,6 +82,7 @@ export function UserFormModal({ visible, onClose, onSubmit, editingUser, isLoadi
         email: editingUser.email,
         phone: editingUser.phone ?? "",
         role: editingUser.role,
+        position: editingUser.position ?? "",
         tags: customTag ? [...knownTags, "Outro"] : knownTags,
         customTag,
       });
@@ -260,7 +262,6 @@ const styles = StyleSheet.create({
   },
 
   scroll: {
-    alignItems: "center",
     paddingBottom: 8,
   },
 
@@ -273,7 +274,6 @@ const styles = StyleSheet.create({
 
   label: {
     alignSelf: "flex-start",
-    marginLeft: "5%",
     marginBottom: 8,
     fontSize: 14,
     fontWeight: "500",
@@ -281,7 +281,6 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    width: "90%",
     color: "#666",
     fontSize: 13,
     marginBottom: 16,
@@ -292,7 +291,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    width: "90%",
     marginBottom: 16,
   },
 
