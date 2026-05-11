@@ -1,51 +1,40 @@
+import {
+  Appointment,
+  AppointmentStatus,
+  UpdateAppointmentPayload,
+} from "@/types";
 import { api } from "./api";
 
-export type AppointmentStatus =
-  | "pending"
-  | "confirmed"
-  | "completed"
-  | "cancelled"
-  | "no_show";
+export type { Appointment, AppointmentStatus };
 
-export interface AppointmentRelation {
-  id: string;
-  name?: string;
-  full_name?: string;
+export async function getAppointments(): Promise<Appointment[]> {
+  const response = await api.get<Appointment[]>("/api/appointments");
+  return response.data;
 }
 
-export interface ApiAppointment {
-  id: string;
-  pet_id: string;
-  client_id: string;
-  staff_id: string | null;
-  scheduled_date?: string | null;
-  start_time: string;
-  end_time: string | null;
-  status: AppointmentStatus;
-  pet?: AppointmentRelation | null;
-  client?: AppointmentRelation | null;
-  staff?: AppointmentRelation | null;
-}
-
-export interface UpdateAppointmentPayload {
-  pet_id?: string;
-  client_id?: string;
-  staff_id?: string | null;
-  start_time?: string;
-  end_time?: string | null;
-  status?: AppointmentStatus;
-}
-
-export async function getAppointments(): Promise<ApiAppointment[]> {
-  const response = await api.get<ApiAppointment[]>("/api/appointments");
+export async function getStaffAppointments(staffId: string): Promise<Appointment[]> {
+  const response = await api.get<Appointment[]>(
+    `/api/staff/${staffId}/appointments`
+  );
   return response.data;
 }
 
 export async function updateAppointment(
   id: string,
   data: UpdateAppointmentPayload
-): Promise<ApiAppointment> {
-  const response = await api.patch<ApiAppointment>(`/api/appointments/${id}`, data);
+): Promise<Appointment> {
+  const response = await api.patch<Appointment>(`/api/appointments/${id}`, data);
+  return response.data;
+}
+
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  status: AppointmentStatus
+): Promise<Appointment> {
+  const response = await api.patch<Appointment>(
+    `/api/appointments/${appointmentId}`,
+    { status }
+  );
   return response.data;
 }
 

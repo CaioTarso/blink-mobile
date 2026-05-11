@@ -1,7 +1,10 @@
-import { Appointment, AppointmentsList } from "@/components/AppointmentsList";
+import {
+  Appointment as ListAppointment,
+  AppointmentsList,
+} from "@/components/AppointmentsList";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import {
-  ApiAppointment,
+  Appointment as ApiAppointment,
   AppointmentStatus,
   deleteAppointment,
   getAppointments,
@@ -50,8 +53,8 @@ function getRelationName(
 
 function mapStatusToListStatus(
   status: AppointmentStatus
-): Appointment["status"] {
-  const statusMap: Record<AppointmentStatus, Appointment["status"]> = {
+): ListAppointment["status"] {
+  const statusMap: Record<AppointmentStatus, ListAppointment["status"]> = {
     pending: "agendado",
     confirmed: "agendado",
     completed: "concluído",
@@ -64,7 +67,7 @@ function mapStatusToListStatus(
 
 function mapApiAppointmentToListAppointment(
   appointment: ApiAppointment
-): Appointment {
+): ListAppointment {
   return {
     id: appointment.id,
     date: formatDate(appointment.scheduled_date || appointment.start_time),
@@ -78,7 +81,7 @@ function mapApiAppointmentToListAppointment(
 }
 
 export default function AdminAgenda() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<ListAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 

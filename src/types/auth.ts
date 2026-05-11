@@ -9,6 +9,8 @@ export type User = {
   birthdate?: string;
   cpf?: string;
   role?: UserRole;
+  position?: string;
+  hired_at?: string;
 };
 
 export type UpdateProfileRequest = {
