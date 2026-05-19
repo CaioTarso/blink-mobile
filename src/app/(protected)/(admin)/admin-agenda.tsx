@@ -4,7 +4,7 @@ import {
 } from "@/components/AppointmentsList";
 import { AdminMenu } from "@/components/admin/navigation/AdminMenu";
 import {
-  Appointment as ApiAppointment,
+  Appointment,
   AppointmentStatus,
   deleteAppointment,
   getAppointments,
@@ -46,9 +46,10 @@ function formatTime(value?: string | null) {
 }
 
 function getRelationName(
-  relation?: { name?: string; full_name?: string } | null
+  relation?: any | null
 ) {
-  return relation?.name || relation?.full_name || "Não informado";
+  if (!relation) return "Não informado";
+  return relation.name || relation.full_name || relation.user?.name || relation.user?.full_name || "Não informado";
 }
 
 function mapStatusToListStatus(
@@ -66,13 +67,13 @@ function mapStatusToListStatus(
 }
 
 function mapApiAppointmentToListAppointment(
-  appointment: ApiAppointment
+  appointment: Appointment
 ): ListAppointment {
   return {
     id: appointment.id,
     date: formatDate(appointment.scheduled_date || appointment.start_time),
     time: formatTime(appointment.start_time),
-    service: "Serviço não informado",
+    service: appointment.service?.name ?? appointment.services?.[0]?.name ?? "Serviço não informado",
     petName: getRelationName(appointment.pet),
     clientName: getRelationName(appointment.client),
     professional: getRelationName(appointment.staff),

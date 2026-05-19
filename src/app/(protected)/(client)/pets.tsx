@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,21 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/styles/colors";
 import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { ModalNewPet } from "@/components/client/navigation/ModalNewPet";
 import { ModalDeletePet } from "@/components/client/navigation/ModalDeletePet";
+import { useAuth } from "@/context/AuthContext";
+import {
+  getPets,
+  createPet,
+  updatePet,
+  deletePet,
+} from "@/services/pets";
+import type { Pet as ApiPet, PetSpecies } from "@/types/pets";
 
 type PetType = "Cachorro" | "Gato" | "Pássaro" | "Outro";
 type PetSex = "Macho" | "Fêmea";
@@ -27,35 +36,124 @@ type Pet = {
   notes: string;
 };
 
-const mockPets: Pet[] = [
-  {
-    id: "1",
-    name: "Rex",
-    breed: "Golden Retriever",
-    type: "Cachorro",
-    weight: 30,
-    age: 3,
-    sex: "Macho",
-    notes: "Muito dócil, adora água",
-  },
-  {
-    id: "2",
-    name: "Mimi",
-    breed: "Golden Retriever",
-    type: "Gato",
-    weight: 4,
-    age: 2,
-    sex: "Fêmea",
-    notes: "Muito dócil, adora água",
-  },
-];
+// --- Mapeamento UI ↔ API ---
+
+const speciesMap: Record<PetType, PetSpecies> = {
+  Cachorro: "dog",
+  Gato: "cat",
+  Pássaro: "bird",
+  Outro: "other",
+};
+
+const speciesReverseMap: Record<string, PetType> = {
+  dog: "Cachorro",
+  cat: "Gato",
+  bird: "Pássaro",
+  rabbit: "Outro",
+  other: "Outro",
+};
+
+const sexMap: Record<PetSex, string> = {
+  Macho: "male",
+  Fêmea: "female",
+};
+
+const sexReverseMap: Record<string, PetSex> = {
+  male: "Macho",
+  female: "Fêmea",
+};
+
+function apiPetToLocal(pet: ApiPet): Pet {
+  return {
+    id: pet.id,
+    name: pet.name,
+    breed: pet.breed ?? "",
+    type: speciesReverseMap[pet.species] ?? "Outro",
+    weight: pet.weight ?? 0,
+    age: pet.years ?? 0,
+    sex: sexReverseMap[pet.sex] ?? "Macho",
+    notes: pet.notes ?? "",
+  };
+}
+
 
 export default function ClientPets() {
-  const [pets, setPets] = useState<Pet[]>(mockPets);
+  const { user } = useAuth();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [deletingPet, setDeletingPet] = useState<Pet | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadPets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getPets();
+      setPets(data.map(apiPetToLocal));
+    } catch (err) {
+      console.warn("Erro ao carregar pets:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPets();
+  }, [loadPets]);
+
+  const handleSubmit = async (data: any) => {
+    setSubmitting(true);
+    try {
+      const payload = {
+        client_id: user?.id ?? "",
+        name: data.name,
+        species: speciesMap[data.type as PetType] ?? "other",
+        weight: parseFloat(data.weight) || 0,
+        years: parseInt(data.age, 10) || 0,
+        breed: data.breed || "",
+        sex: sexMap[data.sex as PetSex] ?? "male",
+        notes: data.notes ?? "",
+      };
+
+      console.log("[PETS] Enviando payload:", JSON.stringify(payload));
+
+      if (editingPet) {
+        const updated = await updatePet(editingPet.id, payload);
+        setPets((prev) =>
+          prev.map((p) => (p.id === editingPet.id ? apiPetToLocal(updated) : p))
+        );
+      } else {
+        const created = await createPet(payload);
+        setPets((prev) => [...prev, apiPetToLocal(created)]);
+      }
+
+      setModalVisible(false);
+      setEditingPet(null);
+    } catch (err: any) {
+      console.warn("Erro ao salvar pet:", err);
+      console.warn("Resposta da API:", JSON.stringify(err.response?.data));
+      const msg = err.response?.data?.message || "Erro ao salvar pet. Tente novamente.";
+      alert(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingPet) return;
+    try {
+      await deletePet(deletingPet.id);
+      setPets((prev) => prev.filter((p) => p.id !== deletingPet.id));
+    } catch (err) {
+      console.warn("Erro ao excluir pet:", err);
+      alert("Erro ao excluir pet. Tente novamente.");
+    } finally {
+      setDeleteVisible(false);
+      setDeletingPet(null);
+    }
+  };
 
   const renderItem = ({ item }: { item: Pet }) => (
     <View style={styles.card}>
@@ -141,19 +239,25 @@ export default function ClientPets() {
           Cadastre e gerencie seus animais de estimação
         </Text>
 
-        <FlatList
-          data={pets}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>🐾</Text>
-              <Text style={styles.emptyText}>Nenhum pet cadastrado ainda.</Text>
-            </View>
-          }
-        />
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={colors.secondary} />
+          </View>
+        ) : (
+          <FlatList
+            data={pets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <Text style={styles.emptyEmoji}>🐾</Text>
+                <Text style={styles.emptyText}>Nenhum pet cadastrado ainda.</Text>
+              </View>
+            }
+          />
+        )}
 
         <ModalNewPet
           visible={modalVisible}
@@ -161,24 +265,7 @@ export default function ClientPets() {
             setModalVisible(false);
             setEditingPet(null);
           }}
-          onSubmit={(data) => {
-            if (editingPet) {
-              setPets((prev) =>
-                prev.map((p) =>
-                  p.id === editingPet.id
-                    ? { ...p, ...data, weight: parseFloat(data.weight), age: parseInt(data.age) }
-                    : p
-                )
-              );
-            } else {
-              setPets((prev) => [
-                ...prev,
-                { ...data, id: Date.now().toString(), weight: parseFloat(data.weight), age: parseInt(data.age) },
-              ]);
-            }
-            setModalVisible(false);
-            setEditingPet(null);
-          }}
+          onSubmit={handleSubmit}
           editingPet={editingPet}
         />
 
@@ -189,11 +276,7 @@ export default function ClientPets() {
             setDeleteVisible(false);
             setDeletingPet(null);
           }}
-          onConfirm={() => {
-            setPets((prev) => prev.filter((p) => p.id !== deletingPet?.id));
-            setDeleteVisible(false);
-            setDeletingPet(null);
-          }}
+          onConfirm={handleDelete}
         />
       </View>
 
@@ -242,6 +325,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: "gray",
     marginLeft: 16,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   listContent: {
     paddingBottom: 20,

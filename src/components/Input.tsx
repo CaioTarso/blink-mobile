@@ -24,6 +24,7 @@ export function Input({
   isPassword = false,
   isSearch = false,
   onSearch,
+  value,
   ...rest
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -46,6 +47,7 @@ export function Input({
           secureTextEntry={isPassword && !showPassword}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          value={value ?? ""}
           {...rest}
         />
 

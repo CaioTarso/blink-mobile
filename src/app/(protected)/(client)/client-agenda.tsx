@@ -15,6 +15,7 @@ import {
   listMyAppointments,
 } from "@/services/appointments";
 import { colors } from "@/styles/colors";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ClientAgenda() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -22,15 +23,18 @@ export default function ClientAgenda() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+
   const load = useCallback(async () => {
     try {
       setError(null);
-      const data = await listMyAppointments();
+      if (!user?.id) return;
+      const data = await listMyAppointments(user.id);
       setAppointments(data);
     } catch (e) {
       setError("Não foi possível carregar seus agendamentos.");
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     (async () => {

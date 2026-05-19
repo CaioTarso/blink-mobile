@@ -1,5 +1,5 @@
 import { createAppointment } from "@/services/appointments";
-import { getMyPets, Pet } from "@/services/pets";
+import { getPets, Pet } from "@/services/pets";
 import { getServices } from "@/services/services";
 import { getProfessionals } from "@/services/users";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +19,7 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 import { ClientMenu } from "@/components/client/navigation/ClientMenu";
 import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
 
 type AppointmentDraft = {
   pet: any;
@@ -38,6 +39,7 @@ LocaleConfig.defaultLocale = "pt-br";
 
 export default function BookingScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
 
   const [services, setServices] = useState<any[]>([]); 
@@ -61,8 +63,8 @@ export default function BookingScreen() {
     getServices().then(setServices);
     getProfessionals()
       .then(setProfessionals)
-      .catch(() => console.log("Erro ao carregar profissionais"));
-    getMyPets()
+      .catch((err) => console.log("Erro ao carregar profissionais:", err.response?.data || err.message));
+    getPets()
       .then(setPets)
       .catch(() => console.log("Erro ao carregar pets"))
       .finally(() => setPetsLoading(false));
@@ -86,17 +88,18 @@ export default function BookingScreen() {
     try {
       setSubmitting(true);
       await createAppointment({
-        pet_id: String(pet.id),
-        service_id: String(service.id),
-        professional_id: String(professional.id),
-        date: appointment.date,
-        time: appointment.time,
+        pet_id: pet.id,
+        service_id: service.id,
+        staff_id: professional.id,
+        client_id: user?.id || "",
+        start_time: `${appointment.date} ${appointment.time}:00`,
       });
       setStep(6);
-    } catch (e) {
+    } catch (e: any) {
+      console.log("Erro na API (Create Appointment):", JSON.stringify(e.response?.data, null, 2));
       Alert.alert(
         "Erro",
-        "Não foi possível concluir o agendamento. Tente novamente."
+        "Não foi possível concluir o agendamento. Verifique o console."
       );
     } finally {
       setSubmitting(false);
@@ -190,7 +193,7 @@ export default function BookingScreen() {
             <View style={styles.serviceInfo}>
               <Text style={styles.serviceName}>{item.name}</Text>
               <Text style={styles.serviceDescription} numberOfLines={2}>{item.description}</Text>
-              <Text style={styles.servicePrice}>R$ {item.price.toFixed(2)}</Text>
+              <Text style={styles.servicePrice}>R$ {Number(item.price).toFixed(2)}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -282,7 +285,7 @@ export default function BookingScreen() {
             <View style={[styles.summaryBox, styles.totalBox]}>
               <Text style={styles.totalLabel}>Valor Total</Text>
               <Text style={styles.totalValue}>
-                R$ {appointment.service?.price ? appointment.service.price.toFixed(2) : "0.00"}
+                R$ {appointment.service?.price ? Number(appointment.service.price).toFixed(2) : "0.00"}
               </Text>
             </View>
 
