@@ -1,14 +1,27 @@
+import { getMe } from "@/services/auth";
 import { colors } from "@/styles/colors";
 import { useRouter } from "expo-router";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-type TopBarProps = {
-  userName: string;
-};
-
-export function TopBar({ userName }: TopBarProps) {
+export function TopBar() {
   const router = useRouter();
+  const [userName, setUserName] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMe()
+      .then((user) => setUserName(user.name))
+      .catch(() => setUserName(""))
+      .finally(() => setLoading(false));
+  }, []);
+
   const initial = userName.charAt(0).toUpperCase();
 
   return (
@@ -16,7 +29,15 @@ export function TopBar({ userName }: TopBarProps) {
       <View style={styles.left}>
         <View style={styles.textContainer}>
           <Text style={styles.greeting}>Olá,</Text>
-          <Text style={styles.name}>{userName}</Text>
+          {loading ? (
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+              style={{ alignSelf: "flex-start" }}
+            />
+          ) : (
+            <Text style={styles.name}>{userName || "Usuário"}</Text>
+          )}
         </View>
       </View>
 
@@ -25,7 +46,11 @@ export function TopBar({ userName }: TopBarProps) {
         onPress={() => router.push("/(protected)/(admin)/admin-profile")}
         activeOpacity={0.8}
       >
-        <Text style={styles.avatarText}>{initial}</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.avatarText}>{initial || "?"}</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
