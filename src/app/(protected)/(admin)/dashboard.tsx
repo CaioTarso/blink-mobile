@@ -140,7 +140,6 @@ export default function Dashboard() {
 
             <AdminBarChart data={metricsToBarChart(metrics)} />
 
-            {/* O DonutChart fica para quando a API fornecer breakdown por serviço */}
             {/* <ServicesDonutChart data={donutData} /> */}
           </>
         )}
